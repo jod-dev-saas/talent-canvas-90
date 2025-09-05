@@ -83,8 +83,8 @@ export function CustomCursor({ children }: CustomCursorProps) {
         <div 
           className="w-full h-full rounded-full border-2"
           style={{ 
-            borderColor: 'rgb(30, 157, 241)', // Primary blue color
-            backgroundColor: 'rgba(30, 157, 241, 0.1)'
+            borderColor: 'hsl(var(--primary))', // Use CSS variable for theme compatibility
+            backgroundColor: 'hsl(var(--primary) / 0.1)'
           }}
         />
       </motion.div>
