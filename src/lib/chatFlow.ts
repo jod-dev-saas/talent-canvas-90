@@ -77,7 +77,7 @@ export const chatFlow: ChatFlow = {
   candidate_schedule: {
     message: "Schedule a call with our team using the link below:",
     options: [
-      { id: "open_scheduler", text: "Open Scheduler", externalUrl: process.env.NEXT_PUBLIC_CALCOM_URL || "https://cal.com" },
+      { id: "open_scheduler", text: "Open Scheduler", externalUrl: import.meta.env.VITE_CALCOM_URL || "https://cal.com" },
       { id: "back_main", text: "Back to menu", nextAction: "greeting" }
     ]
   },
@@ -136,7 +136,7 @@ export const chatFlow: ChatFlow = {
   company_support: {
     message: "Contact our support team at support@talentcanvas.com or schedule a call:",
     options: [
-      { id: "schedule_support", text: "Schedule a call", externalUrl: process.env.NEXT_PUBLIC_CALCOM_URL || "https://cal.com" },
+      { id: "schedule_support", text: "Schedule a call", externalUrl: import.meta.env.VITE_CALCOM_URL || "https://cal.com" },
       { id: "back_main", text: "Back to menu", nextAction: "greeting" }
     ]
   },
