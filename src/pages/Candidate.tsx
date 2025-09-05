@@ -71,10 +71,10 @@ export default function Candidate() {
             </p>
           </div>
 
-          {/* Form and Preview Layout */}
-          <div className="grid lg:grid-cols-3 gap-8">
+          {/* Form and Submit Layout - No Preview */}
+          <div className="max-w-4xl mx-auto">
             {/* Form Section */}
-            <div className="lg:col-span-2 space-y-8">
+            <div className="space-y-8">
               
               {/* Basic Info */}
               <Card className="animate-fade-in">
@@ -191,19 +191,10 @@ export default function Candidate() {
                 <Button 
                   onClick={handleSubmit}
                   size="lg" 
-                  className="px-12 py-3 text-lg hover-scale"
+                  className="px-12 py-3 text-lg hover-scale min-h-touch"
                 >
                   Create Profile
                 </Button>
-              </div>
-            </div>
-
-            {/* Preview Section */}
-            <div className="lg:col-span-1">
-              <div className="sticky top-24">
-                <div className="animate-fade-in">
-                  <ProfilePreview profile={profile} />
-                </div>
               </div>
             </div>
           </div>
