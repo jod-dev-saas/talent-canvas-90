@@ -201,6 +201,133 @@ function detectLocationPreferences(text: string): string {
   return 'Hybrid/Flexible';
 }
 
+// 20 hardcoded assistant messages for ChatGPT-style interface
+export const ASSISTANT_MESSAGES = [
+  "How can I help you craft a standout profile today?",
+  "Shall I guide you step-by-step to build a great profile?",
+  "I can suggest projects that demonstrate your skills — want suggestions?",
+  "Would you like feedback on your resume layout or content?",
+  "Tell me your top 3 skills and I'll suggest how to showcase them.",
+  "Want me to generate a job-search prompt for companies?",
+  "I can provide interview prep tips — what role are you targeting?",
+  "Want help tailoring your GitHub README to impress recruiters?",
+  "I can help draft a concise summary for your profile — try me.",
+  "Would you like tips to highlight your ML/AI projects effectively?",
+  "I can analyze your project descriptions and suggest improvements.",
+  "Need help converting academic projects into industry-ready case studies?",
+  "Want a checklist to optimize your resume for ATS?",
+  "I can suggest keyword-rich phrases for recruiter searches.",
+  "Shall I propose a portfolio structure that recruiters love?",
+  "I can craft a short outreach message for companies — want that?",
+  "Want a prioritized skill-learning path for your next promotion?",
+  "I can review your bullet points and make them achievement-focused.",
+  "Need help turning an internship into a full-time offer? I can advise.",
+  "I can create a mock interview question set for your role — start now?"
+];
+
+// Pattern-based response mapping for ChatGPT-style responses
+const CHAT_RESPONSE_PATTERNS: { pattern: RegExp; messageIndex: number }[] = [
+  { pattern: /resume|cv|curriculum/i, messageIndex: 3 },
+  { pattern: /ats|applicant.tracking/i, messageIndex: 12 },
+  { pattern: /ml|machine.learning|ai|artificial.intelligence/i, messageIndex: 9 },
+  { pattern: /interview|preparation/i, messageIndex: 6 },
+  { pattern: /profile|portfolio/i, messageIndex: 14 },
+  { pattern: /skills|learning|development/i, messageIndex: 16 },
+  { pattern: /github|projects?/i, messageIndex: 7 },
+  { pattern: /job.search|search.prompt|companies/i, messageIndex: 5 },
+  { pattern: /keywords?|recruiter/i, messageIndex: 13 },
+  { pattern: /internship|full.time/i, messageIndex: 18 },
+];
+
+/**
+ * Generate time-based greeting for new conversations
+ */
+export function generateTimeBasedGreeting(): string {
+  const hour = new Date().getHours();
+  let greeting: string;
+
+  if (hour >= 5 && hour < 12) {
+    greeting = "Good morning";
+  } else if (hour >= 12 && hour < 17) {
+    greeting = "Good afternoon";
+  } else {
+    greeting = "Good evening";
+  }
+
+  // Rotate through first few messages for variety
+  const messageIndex = Math.floor(Math.random() * 5);
+  const selectedMessage = ASSISTANT_MESSAGES[messageIndex];
+  
+  return `${greeting} — ${selectedMessage.toLowerCase()}`;
+}
+
+/**
+ * Get assistant response based on user input and role
+ */
+export function getAssistantResponse(
+  userMessage: string, 
+  userRole: 'candidate' | 'company' | null
+): string {
+  const message = userMessage.toLowerCase();
+
+  // Special handling for help requests
+  if (message.includes('help') || message === 'menu') {
+    return generateHelpResponse(userRole);
+  }
+
+  // Try pattern matching
+  for (const { pattern, messageIndex } of CHAT_RESPONSE_PATTERNS) {
+    if (pattern.test(message)) {
+      return ASSISTANT_MESSAGES[messageIndex];
+    }
+  }
+
+  // Company-specific responses
+  if (userRole === 'company') {
+    if (message.includes('candidate') || message.includes('hire') || message.includes('recruit')) {
+      return "I can craft a short outreach message for companies — want that?";
+    }
+  }
+
+  // Return fallback
+  return "Sorry, I can't handle that yet. Try one of the menu options or type 'help'.";
+}
+
+/**
+ * Generate help response based on user role
+ */
+function generateHelpResponse(userRole: 'candidate' | 'company' | null): string {
+  const baseHelp = `Here's what I can help with:
+
+• Profile and resume optimization
+• Interview preparation and tips  
+• Skills development planning
+• Project showcasing strategies
+• Job search guidance`;
+
+  if (userRole === 'candidate') {
+    return baseHelp + `
+• ATS optimization
+• Portfolio structure
+• GitHub profile improvement
+
+What would you like to focus on?`;
+  }
+
+  if (userRole === 'company') {
+    return baseHelp + `
+• Candidate outreach messages
+• Job description optimization
+• Recruitment strategies
+
+What would you like to explore?`;
+  }
+
+  return baseHelp + `
+
+What area interests you most?`;
+}
+
 /**
  * Sample conversation starters for each persona
  */
