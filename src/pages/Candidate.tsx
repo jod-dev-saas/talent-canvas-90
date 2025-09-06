@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Upload, User, Mail, Briefcase } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { useToast } from '@/hooks/use-toast';
 
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -14,10 +15,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 
 import { SkillsInput } from '@/components/candidate/SkillsInput';
 import { ProjectsSection } from '@/components/candidate/ProjectsSection';
-import { ProfilePreview } from '@/components/candidate/ProfilePreview';
+// TODO: ProfilePreview removed - no preview card anywhere as per requirements
 import { CandidateProfile } from '@/types/candidate';
 
 export default function Candidate() {
+  const { toast } = useToast();
   const [profile, setProfile] = useState<CandidateProfile>({
     name: '',
     email: '',
@@ -38,7 +40,11 @@ export default function Candidate() {
 
   const handleSubmit = () => {
     console.log('Profile submitted:', profile);
-    // Placeholder - will integrate with backend later
+    // TODO: Integrate with Supabase backend later (add auth + RLS first)
+    toast({
+      title: "Profile Saved",
+      description: "Your candidate profile has been saved successfully.",
+    });
   };
 
   return (
@@ -193,7 +199,7 @@ export default function Candidate() {
                   size="lg" 
                   className="px-12 py-3 text-lg hover-scale min-h-touch"
                 >
-                  Create Profile
+                  Save Profile
                 </Button>
               </div>
             </div>
