@@ -19,6 +19,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { Button } from "@/components/ui/button";
 import { AskJodSidebar } from "@/components/AskJodSidebar";
 import { AskJodMain } from "@/components/AskJodMain";
 import { AskJodComposer } from "@/components/AskJodComposer";
@@ -50,6 +51,9 @@ export default function AskJod() {
 
   // Load data on mount
   useEffect(() => {
+    // Client-side only guards
+    if (typeof window === 'undefined') return;
+    
     const role = localStorage.getItem('jod_role') as 'candidate' | 'company' | null;
     setUserRole(role);
     
@@ -66,26 +70,61 @@ export default function AskJod() {
           }))
         }));
         setConversations(parsedChats);
+        
+        // If there are no conversations, create initial greeting
+        if (parsedChats.length === 0) {
+          // Wait a tick to ensure component is mounted
+          setTimeout(() => {
+            createNewConversation();
+          }, 100);
+        }
       } catch (error) {
         console.error('Failed to load conversations:', error);
         setConversations([]);
+        // Create initial conversation on error
+        setTimeout(() => {
+          createNewConversation();
+        }, 100);
       }
+    } else {
+      // No saved chats, create initial conversation
+      setTimeout(() => {
+        createNewConversation();
+      }, 100);
     }
   }, []);
 
   // Save conversations when they change
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     if (conversations.length > 0) {
-      localStorage.setItem('jod_chats_v1', JSON.stringify(conversations));
+      try {
+        localStorage.setItem('jod_chats_v1', JSON.stringify(conversations));
+      } catch (error) {
+        console.error('Failed to save conversations:', error);
+        toast({
+          title: "Storage Error",
+          description: "Could not save conversation. Please check your browser storage.",
+          variant: "destructive"
+        });
+      }
     }
-  }, [conversations]);
+  }, [conversations, toast]);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom when messages change (with reduced motion support)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current) {
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: prefersReducedMotion ? 'auto' : 'smooth' 
+      });
+    }
   }, [currentConversation?.messages]);
 
   const createNewConversation = () => {
+    if (typeof window === 'undefined') return;
+    
     const now = new Date();
     const greeting = generateTimeBasedGreeting();
     
@@ -131,6 +170,8 @@ export default function AskJod() {
   };
 
   const clearAllConversations = () => {
+    if (typeof window === 'undefined') return;
+    
     setConversations([]);
     setCurrentConversation(null);
     localStorage.removeItem('jod_chats_v1');
@@ -147,6 +188,11 @@ export default function AskJod() {
         ? { ...c, title: newTitle, updated_at: new Date() }
         : c
     ));
+    
+    // Update current conversation if it matches
+    if (currentConversation?.id === conversationId) {
+      setCurrentConversation(prev => prev ? { ...prev, title: newTitle, updated_at: new Date() } : null);
+    }
   };
 
   const sendMessage = async (text: string) => {
@@ -269,7 +315,7 @@ export default function AskJod() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="pt-16 h-screen flex">
+      <main className="pt-16 h-screen flex overflow-hidden">
         <AskJodSidebar
           conversations={conversations}
           currentConversation={currentConversation}
@@ -283,7 +329,7 @@ export default function AskJod() {
           onImport={importConversations}
         />
         
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col min-w-0">
           {currentConversation ? (
             <>
               <AskJodMain
@@ -299,20 +345,21 @@ export default function AskJod() {
               />
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center space-y-4">
+            <div className="flex-1 flex items-center justify-center p-4">
+              <div className="text-center space-y-4 max-w-md">
                 <h2 className="text-2xl font-semibold text-muted-foreground">
                   Welcome to Ask JOD
                 </h2>
                 <p className="text-muted-foreground">
-                  Start a new conversation to get career guidance
+                  Start a new conversation to get career guidance and advice from our AI assistant.
                 </p>
-                <button
+                <Button
                   onClick={createNewConversation}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                  size="lg"
+                  className="min-h-[44px]"
                 >
                   Start New Conversation
-                </button>
+                </Button>
               </div>
             </div>
           )}

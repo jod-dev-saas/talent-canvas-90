@@ -146,8 +146,21 @@ export function Header() {
               </Badge>
             )}
 
-            {/* Ask JOD Button - Always visible */}
-            <Button variant="outline" size="sm" asChild>
+            {/* Ask JOD Button - Always visible with prefetch */}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              asChild
+              onMouseEnter={() => {
+                // Prefetch Ask JOD on hover
+                if (typeof window !== 'undefined') {
+                  const link = document.createElement('link');
+                  link.rel = 'prefetch';
+                  link.href = '/ask-jod';
+                  document.head.appendChild(link);
+                }
+              }}
+            >
               <Link to="/ask-jod">Ask JOD</Link>
             </Button>
 

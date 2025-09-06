@@ -13,6 +13,7 @@ import Candidate from "./pages/Candidate";
 import Company from "./pages/Company";
 import ResumeBuilder from "./pages/ResumeBuilder";
 import ATSChecker from "./pages/ATSChecker";
+import AskJod from "./pages/AskJod";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
               <Route path="/company" element={<Company />} />
               <Route path="/resume-builder" element={<ResumeBuilder />} />
               <Route path="/ats-checker" element={<ATSChecker />} />
+              <Route path="/ask-jod" element={<AskJod />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

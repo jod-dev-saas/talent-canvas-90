@@ -95,7 +95,8 @@ export function AskJodComposer({ onSendMessage, disabled = false }: AskJodCompos
                 size="sm"
                 onClick={() => handleQuickReply(reply)}
                 disabled={isSending || disabled}
-                className="text-xs"
+                className="text-xs min-h-[44px] px-3"
+                aria-label={`Quick reply: ${reply}`}
               >
                 <Sparkles className="mr-1 h-3 w-3" />
                 {reply}
@@ -114,8 +115,9 @@ export function AskJodComposer({ onSendMessage, disabled = false }: AskJodCompos
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={handleKeyPress}
                 placeholder="Ask me anything about your career... (Press Enter to send, Shift+Enter for new line)"
-                className="min-h-[44px] max-h-[120px] resize-none border-0 shadow-none focus-visible:ring-0 p-0"
+                className="min-h-[44px] max-h-[120px] resize-none border-0 shadow-none focus-visible:ring-0 p-0 text-base"
                 disabled={isSending || disabled}
+                aria-label="Type your message"
               />
             </div>
 
@@ -124,9 +126,10 @@ export function AskJodComposer({ onSendMessage, disabled = false }: AskJodCompos
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-10 w-10"
+                className="h-11 w-11 min-h-[44px]"
                 disabled={true} // TODO: Enable when voice input is implemented
                 title="Voice input (coming soon)"
+                aria-label="Voice input (coming soon)"
               >
                 <Mic className="h-4 w-4" />
               </Button>
@@ -136,7 +139,8 @@ export function AskJodComposer({ onSendMessage, disabled = false }: AskJodCompos
                 onClick={handleSend}
                 disabled={!message.trim() || isSending || disabled}
                 size="sm"
-                className="h-10 w-10"
+                className="h-11 w-11 min-h-[44px]"
+                aria-label="Send message"
               >
                 <Send className="h-4 w-4" />
               </Button>
@@ -144,8 +148,9 @@ export function AskJodComposer({ onSendMessage, disabled = false }: AskJodCompos
           </div>
         </Card>
 
-        <div className="text-xs text-muted-foreground text-center">
-          JOD AI can make mistakes. All advice is for educational purposes only.
+        <div className="text-xs text-muted-foreground text-center px-4">
+          <strong>Disclaimer:</strong> JOD AI provides simulated career guidance for educational purposes only. 
+          All advice is general in nature and should be considered alongside professional career counseling.
         </div>
       </div>
     </div>

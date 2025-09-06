@@ -96,8 +96,9 @@ export function AskJodSidebar({
         
         <Button 
           onClick={onNewChat}
-          className="w-full"
+          className="w-full min-h-[44px]"
           size="sm"
+          aria-label="Start new conversation"
         >
           <Plus className="mr-2 h-4 w-4" />
           New Chat
