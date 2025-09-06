@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -50,6 +50,10 @@ export function Header() {
   const [role, setRole] = useState<UserRole>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Check if current route is Ask JOD to hide the nav button
+  const isOnAskJodPage = location.pathname === '/ask-jod';
 
   // Read role from localStorage on mount and listen for changes
   useEffect(() => {
@@ -146,23 +150,25 @@ export function Header() {
               </Badge>
             )}
 
-            {/* Ask JOD Button - Always visible with prefetch */}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              asChild
-              onMouseEnter={() => {
-                // Prefetch Ask JOD on hover
-                if (typeof window !== 'undefined') {
-                  const link = document.createElement('link');
-                  link.rel = 'prefetch';
-                  link.href = '/ask-jod';
-                  document.head.appendChild(link);
-                }
-              }}
-            >
-              <Link to="/ask-jod">Ask JOD</Link>
-            </Button>
+            {/* Ask JOD Button - Hidden when on /ask-jod page */}
+            {!isOnAskJodPage && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                asChild
+                onMouseEnter={() => {
+                  // Prefetch Ask JOD on hover
+                  if (typeof window !== 'undefined') {
+                    const link = document.createElement('link');
+                    link.rel = 'prefetch';
+                    link.href = '/ask-jod';
+                    document.head.appendChild(link);
+                  }
+                }}
+              >
+                <Link to="/ask-jod">Ask JOD</Link>
+              </Button>
+            )}
 
             <ThemeToggle />
 
@@ -179,7 +185,7 @@ export function Header() {
                   <SheetTitle>Navigation</SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col space-y-4 mt-6">
-                  {navItems.map(item => (
+                  {navItems.filter(item => !(isOnAskJodPage && item.href === '/ask-jod')).map(item => (
                     <Button 
                       key={item.href} 
                       variant="ghost" 

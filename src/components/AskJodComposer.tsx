@@ -63,6 +63,9 @@ export function AskJodComposer({ onSendMessage, disabled = false }: AskJodCompos
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      handleSend();
     }
   };
 
@@ -114,7 +117,7 @@ export function AskJodComposer({ onSendMessage, disabled = false }: AskJodCompos
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={handleKeyPress}
-                placeholder="Ask me anything about your career... (Press Enter to send, Shift+Enter for new line)"
+                placeholder="Ask me anything about your career... (Enter to send, Shift+Enter for new line, Ctrl+Enter to send)"
                 className="min-h-[44px] max-h-[120px] resize-none border-0 shadow-none focus-visible:ring-0 p-0 text-base"
                 disabled={isSending || disabled}
                 aria-label="Type your message"

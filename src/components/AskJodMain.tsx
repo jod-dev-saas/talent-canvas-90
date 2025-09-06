@@ -26,7 +26,7 @@ interface AskJodMainProps {
   conversation: Conversation;
   userRole: 'candidate' | 'company' | null;
   onUpdateTitle: (conversationId: string, newTitle: string) => void;
-  onExport: (conversation: Conversation) => void;
+  onExportPDF: (conversation: Conversation) => void;
   onDelete: (conversationId: string) => void;
 }
 
@@ -34,7 +34,7 @@ export function AskJodMain({
   conversation,
   userRole,
   onUpdateTitle,
-  onExport,
+  onExportPDF,
   onDelete
 }: AskJodMainProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -42,17 +42,30 @@ export function AskJodMain({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  // Update title value when conversation changes
+  useEffect(() => {
+    setTitleValue(conversation.title);
+  }, [conversation.title]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current && typeof window !== 'undefined') {
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ 
+          behavior: prefersReducedMotion ? 'auto' : 'smooth',
+          block: 'end'
+        });
+      }, 100);
     }
   }, [conversation.messages]);
 
   const handleSaveTitle = () => {
-    if (titleValue.trim() && titleValue !== conversation.title) {
-      onUpdateTitle(conversation.id, titleValue.trim());
+    const trimmed = titleValue.trim();
+    if (trimmed && trimmed !== conversation.title) {
+      onUpdateTitle(conversation.id, trimmed);
     }
     setIsEditingTitle(false);
   };
@@ -70,6 +83,15 @@ export function AskJodMain({
     }
   };
 
+  const handleTitleClick = () => {
+    setIsEditingTitle(true);
+    // Focus the input after state update
+    setTimeout(() => {
+      titleInputRef.current?.focus();
+      titleInputRef.current?.select();
+    }, 10);
+  };
+
   return (
     <div className="flex-1 flex flex-col">
       {/* Header */}
@@ -79,32 +101,30 @@ export function AskJodMain({
             {isEditingTitle ? (
               <div className="flex items-center gap-2 flex-1">
                 <Input
+                  ref={titleInputRef}
                   value={titleValue}
                   onChange={(e) => setTitleValue(e.target.value)}
                   onKeyDown={handleKeyPress}
+                  onBlur={handleSaveTitle}
                   className="flex-1"
-                  autoFocus
+                  aria-label="Edit conversation title"
                 />
-                <Button size="sm" variant="ghost" onClick={handleSaveTitle}>
+                <Button size="sm" variant="ghost" onClick={handleSaveTitle} aria-label="Save title">
                   <Check className="h-4 w-4" />
                 </Button>
-                <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
+                <Button size="sm" variant="ghost" onClick={handleCancelEdit} aria-label="Cancel edit">
                   <X className="h-4 w-4" />
                 </Button>
               </div>
             ) : (
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                <h1 className="text-lg font-semibold truncate">
+                <h1 
+                  className="text-lg font-semibold truncate cursor-pointer hover:text-primary transition-colors"
+                  onClick={handleTitleClick}
+                  title="Click to edit title"
+                >
                   {conversation.title}
                 </h1>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  onClick={() => setIsEditingTitle(true)}
-                  className="flex-shrink-0"
-                >
-                  <Edit2 className="h-4 w-4" />
-                </Button>
               </div>
             )}
           </div>
@@ -123,14 +143,16 @@ export function AskJodMain({
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => onExport(conversation)}
+              onClick={() => onExportPDF(conversation)}
+              title="Export as PDF"
+              aria-label="Export conversation as PDF"
             >
               <Download className="h-4 w-4" />
             </Button>
 
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
               <AlertDialogTrigger asChild>
-                <Button size="sm" variant="ghost">
+                <Button size="sm" variant="ghost" title="Delete conversation" aria-label="Delete conversation">
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </AlertDialogTrigger>
@@ -161,7 +183,7 @@ export function AskJodMain({
 
       {/* Messages */}
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
-        <div className="p-4 space-y-4">
+        <div className="px-6 md:px-8 py-6 space-y-4">
           <AnimatePresence mode="popLayout">
             {conversation.messages.map((message, index) => (
               <motion.div
@@ -183,7 +205,7 @@ export function AskJodMain({
                   message.role === 'user'
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted'
-                } rounded-2xl px-4 py-3`}>
+                } rounded-2xl px-4 py-3 mb-1`}>
                   <div className="text-sm leading-relaxed whitespace-pre-wrap">
                     {message.text}
                   </div>

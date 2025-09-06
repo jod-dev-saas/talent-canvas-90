@@ -216,13 +216,15 @@ export function AskJodSidebar({
         <SidebarContent />
       </div>
 
-      {/* Mobile Sidebar Toggle */}
+      {/* Mobile Sidebar Toggle - Only show when sidebar is closed */}
       <Sheet>
         <SheetTrigger asChild>
           <Button
             variant="ghost" 
             size="sm"
-            className="lg:hidden fixed top-20 left-4 z-50"
+            className={`lg:hidden fixed top-20 left-4 z-50 ${isOpen ? 'hidden' : 'flex'}`}
+            aria-expanded={isOpen}
+            aria-label="Open chat sidebar"
           >
             <Menu className="h-4 w-4" />
           </Button>
@@ -232,15 +234,19 @@ export function AskJodSidebar({
         </SheetContent>
       </Sheet>
 
-      {/* Desktop Toggle Button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onToggle}
-        className="hidden lg:flex fixed top-20 left-4 z-50"
-      >
-        <Menu className="h-4 w-4" />
-      </Button>
+      {/* Desktop Toggle Button - Only show when sidebar is closed */}
+      {!isOpen && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggle}
+          className="hidden lg:flex fixed top-20 left-4 z-50"
+          aria-expanded={isOpen}
+          aria-label="Open chat sidebar"
+        >
+          <Menu className="h-4 w-4" />
+        </Button>
+      )}
     </>
   );
 }
