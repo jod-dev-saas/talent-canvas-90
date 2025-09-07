@@ -22,7 +22,6 @@ const CANDIDATE_NAV = [
   { label: "Resume Builder", href: "/resume-builder" },
   { label: "ATS Checker", href: "/ats-checker" },
   { label: "Premium", href: "/premium" },
-  { label: "Ask JOD", href: "/ask-jod" },
   { label: "Contact", href: "/contact" },
   { label: "About", href: "/about" }
 ];
@@ -34,15 +33,16 @@ const COMPANY_NAV = [
   { label: "Experienced", href: "/company/experienced" },
   { label: "Filtered Search", href: "/company" },
   { label: "Ask JOD", href: "/ask-jod" },
-  { label: "Contact", href: "/contact" },
-  { label: "About", href: "/about" }
+  // { label: "Contact", href: "/contact" },
+  // { label: "About", href: "/about" }
 ];
 
 const MINIMAL_NAV = [
   { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
+  // { label: "About", href: "/about" },
   { label: "How it Works", href: "/how" },
-  { label: "Ask JOD", href: "/ask-jod" }
+  { label: "Contact", href: "/contact" },
+  { label: "About", href: "/about" }
 ];
 
 export function Header() {
@@ -124,12 +124,12 @@ export function Header() {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="font-bold text-xl text-foreground hover:text-primary transition-colors">
-            TalentCanvas
+            JOD
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation - Show all nav items except last 2 (Contact, About) */}
           <nav className="hidden lg:flex items-center space-x-6">
-            {navItems.slice(0, -2).map(item => (
+            {navItems.slice().map(item => (
               <Button key={item.href} variant="ghost" asChild>
                 <Link to={item.href}>{item.label}</Link>
               </Button>
@@ -185,6 +185,7 @@ export function Header() {
                   <SheetTitle>Navigation</SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col space-y-4 mt-6">
+                  {/* Show all nav items in mobile */}
                   {navItems.filter(item => !(isOnAskJodPage && item.href === '/ask-jod')).map(item => (
                     <Button 
                       key={item.href} 

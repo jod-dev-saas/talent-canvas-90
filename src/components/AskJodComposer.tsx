@@ -1,116 +1,139 @@
 /**
- * Ask JOD Message Composer - Input area with quick replies
- * 
- * Features:
- * - Multiline text input with Enter to send, Shift+Enter for newline
- * - Quick reply buttons for common prompts
- * - Mic icon (UI only) for future voice input
- * - Auto-resize textarea
- * - Send button with loading state
- * 
- * TODO: Add voice input functionality with speech-to-text
- * TODO: Add file upload for resume/document analysis
+ * Ask JOD Composer - input-only (single-line) ChatGPT-like pill
+ *
+ * Notes:
+ * - Uses <input /> (single-line). Shift+Enter will NOT create a newline (browser limitation).
+ * - Enter (or Ctrl/Cmd+Enter) sends the message.
  */
 
-import { useState, useRef, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
-import { Send, Mic, Sparkles } from "lucide-react";
+import { Send, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+
 interface AskJodComposerProps {
   onSendMessage: (message: string) => Promise<void>;
   disabled?: boolean;
 }
-const QUICK_REPLIES = ["Profile tips", "Resume review", "Interview prep", "Career growth", "Skill development", "Job search"];
-export function AskJodComposer({
-  onSendMessage,
-  disabled = false
-}: AskJodComposerProps) {
+
+const QUICK_REPLIES = [
+  "Profile tips",
+  "Resume review",
+  "Interview prep",
+  "Career growth",
+  "Skill development",
+  "Job search",
+];
+
+export function AskJodComposer({ onSendMessage, disabled = false }: AskJodComposerProps) {
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Auto-resize textarea
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
-    }
-  }, [message]);
   const handleSend = async () => {
     if (!message.trim() || isSending || disabled) return;
     setIsSending(true);
     try {
-      await onSendMessage(message);
+      await onSendMessage(message.trim());
       setMessage("");
+      inputRef.current?.focus();
     } finally {
       setIsSending(false);
     }
   };
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Enter sends (single-line input). Shift+Enter cannot create newline in <input>.
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
-    } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    } else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       handleSend();
     }
   };
+
   const handleQuickReply = (reply: string) => {
-    const prompts = {
+    const prompts: Record<string, string> = {
       "Profile tips": "How can I make my profile stand out to recruiters?",
       "Resume review": "Can you help me improve my resume?",
       "Interview prep": "What are some common interview questions I should prepare for?",
       "Career growth": "How can I advance in my current role?",
       "Skill development": "What skills should I focus on developing?",
-      "Job search": "What's the best strategy for my job search?"
+      "Job search": "What's the best strategy for my job search?",
     };
-    setMessage(prompts[reply as keyof typeof prompts] || reply);
+    setMessage(prompts[reply] ?? reply);
+    setTimeout(() => inputRef.current?.focus(), 0);
   };
-  return <div className="border-t bg-background p-4">
+
+  return (
+    <div className="border-t bg-background p-4">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Quick Replies */}
         <div className="flex flex-wrap gap-2">
-          {QUICK_REPLIES.map(reply => <motion.div key={reply} whileHover={{
-          scale: 1.02
-        }} whileTap={{
-          scale: 0.98
-        }}>
-              <Button variant="outline" size="sm" onClick={() => handleQuickReply(reply)} disabled={isSending || disabled} className="text-xs min-h-[44px] px-3" aria-label={`Quick reply: ${reply}`}>
+          {QUICK_REPLIES.map((reply) => (
+            <motion.div key={reply} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleQuickReply(reply)}
+                disabled={isSending || disabled}
+                className="text-xs min-h-[36px] px-3"
+                aria-label={`Quick reply: ${reply}`}
+              >
                 <Sparkles className="mr-1 h-3 w-3" />
                 {reply}
               </Button>
-            </motion.div>)}
+            </motion.div>
+          ))}
         </div>
 
-        {/* Input Area */}
-        <Card className="p-">
-          <div className="flex gap-3 items-end">
-            <div className="flex-1">
-              <Textarea ref={textareaRef} value={message} onChange={e => setMessage(e.target.value)} onKeyDown={handleKeyPress} placeholder="Ask me anything about your career... (Enter to send, Shift+Enter for new line, Ctrl+Enter to send)" disabled={isSending || disabled} aria-label="Type your message" className="min-h-[50-px] max-h-[120px] resize-none border-0 shadow-none focus-visible:ring-0 p-0 text-base" />
-            </div>
+        {/* Input pill */}
+          <div className="w-full flex justify-center px-2">
+            <div className="w-full max-w-4xl">
+              <div
+                className="flex items-center gap-2 rounded-md bg-ba/70 ring-1 ring-ba/30 shadow-sm
+                           h-10 md:h-12 px-2 md:px-3"
+              >
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Ask anything about your career..."
+                  disabled={isSending || disabled}
+                  aria-label="Type your message"
+                  className="flex-1 bg-transparent border-0 outline-none text-sm md:text-base
+                             placeholder:text-muted-foreground px-2 py-1 caret-current min-w-0"
+                />
 
-            <div className="flex gap-2">
-              {/* Mic Button (UI only) */}
-              <Button variant="ghost" size="sm" className="h-11 w-11 min-h-[44px]" disabled={true} // TODO: Enable when voice input is implemented
-            title="Voice input (coming soon)" aria-label="Voice input (coming soon)">
-                <Mic className="h-4 w-4" />
-              </Button>
-
-              {/* Send Button */}
-              <Button onClick={handleSend} disabled={!message.trim() || isSending || disabled} size="sm" className="h-11 w-11 min-h-[44px]" aria-label="Send message">
-                <Send className="h-4 w-4" />
-              </Button>
+                {/* Send */}
+                <Button
+                  onClick={handleSend}
+                  disabled={!message.trim() || isSending || disabled}
+                  size="icon"
+                  className="h-8 w-8 md:h-9 md:w-9 rounded-md flex items-center justify-center shrink-0"
+                  aria-label="Send message"
+                >
+                  {isSending ? (
+                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.2" />
+                      <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                    </svg>
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
-        </Card>
 
         <div className="text-xs text-muted-foreground text-center px-4">
-          <strong>Disclaimer:</strong> JOD AI provides simulated career guidance for educational purposes only. 
+          <strong>Disclaimer:</strong> JOD AI provides simulated career guidance for educational purposes only.
           All advice is general in nature and should be considered alongside professional career counseling.
         </div>
       </div>
-    </div>;
+    </div>
+  );
 }

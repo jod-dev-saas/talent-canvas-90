@@ -1,23 +1,42 @@
 /**
  * Ask JOD Sidebar - Chat history and navigation
- * 
- * Features:
- * - Collapsible sidebar with conversation list
- * - New chat, delete, and clear all functionality  
- * - Export/import conversations
- * - Mobile-responsive hamburger menu
- * 
- * TODO: Add search/filter conversations by date or keywords
+ *
+ * - Toggle button now always toggles the sidebar open/close.
+ * - Mobile sheet is controlled via isOpen/onToggle props so state stays in sync.
+ * - Selecting a conversation closes the sheet on small screens (desktop unchanged).
  */
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Plus, Menu, Trash2, Download, Upload, MoreVertical, MessageSquare } from "lucide-react";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Plus,
+  Menu,
+  Trash2,
+  Download,
+  Upload,
+  MoreVertical,
+  MessageSquare,
+} from "lucide-react";
 import { Conversation } from "@/pages/AskJod";
 import { formatDistanceToNow } from "date-fns";
 
@@ -44,20 +63,40 @@ export function AskJodSidebar({
   onDeleteConversation,
   onClearAll,
   onExportAll,
-  onImport
+  onImport,
 }: AskJodSidebarProps) {
   const [showClearDialog, setShowClearDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
+    // on mobile we can close the sheet after opening file picker (optional)
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) {
+      onToggle();
+    }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       onImport(file);
-      event.target.value = ''; // Reset input
+      event.target.value = ""; // Reset input
+    }
+  };
+
+  const handleSelectConversation = (conversation: Conversation) => {
+    onSelectConversation(conversation);
+    // Close on mobile for better UX
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) {
+      onToggle();
+    }
+  };
+
+  const handleNewChat = () => {
+    onNewChat();
+    // Close on mobile so user sees chat area
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) {
+      onToggle();
     }
   };
 
@@ -83,7 +122,7 @@ export function AskJodSidebar({
                 Import Chats
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => setShowClearDialog(true)}
                 className="text-destructive"
               >
@@ -93,9 +132,9 @@ export function AskJodSidebar({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        
-        <Button 
-          onClick={onNewChat}
+
+        <Button
+          onClick={handleNewChat}
           className="w-full min-h-[44px]"
           size="sm"
           aria-label="Start new conversation"
@@ -117,19 +156,15 @@ export function AskJodSidebar({
               <Card
                 key={conversation.id}
                 className={`p-3 cursor-pointer transition-all hover:bg-accent ${
-                  currentConversation?.id === conversation.id 
-                    ? 'bg-accent border-primary' 
-                    : ''
+                  currentConversation?.id === conversation.id ? "bg-accent border-primary" : ""
                 }`}
-                onClick={() => onSelectConversation(conversation)}
+                onClick={() => handleSelectConversation(conversation)}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <MessageSquare className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                      <h3 className="text-sm font-medium truncate">
-                        {conversation.title}
-                      </h3>
+                      <h3 className="text-sm font-medium truncate">{conversation.title}</h3>
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {formatDistanceToNow(conversation.updated_at, { addSuffix: true })}
@@ -140,10 +175,11 @@ export function AskJodSidebar({
                       </p>
                     )}
                   </div>
-                  
+
                   <DropdownMenu>
-                    <DropdownMenuTrigger 
+                    <DropdownMenuTrigger
                       asChild
+                      // prevent the trigger click from bubbling to Card's onClick
                       onClick={(e) => e.stopPropagation()}
                     >
                       <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
@@ -151,7 +187,7 @@ export function AskJodSidebar({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
                           onDeleteConversation(conversation.id);
@@ -171,13 +207,7 @@ export function AskJodSidebar({
       </ScrollArea>
 
       {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".json"
-        onChange={handleFileChange}
-        className="hidden"
-      />
+      <input ref={fileInputRef} type="file" accept=".json" onChange={handleFileChange} className="hidden" />
 
       {/* Clear All Dialog */}
       <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
@@ -207,46 +237,45 @@ export function AskJodSidebar({
 
   return (
     <>
-      {/* Desktop Sidebar */}
-      <div 
+      {/* Desktop Sidebar (controlled width) */}
+      <div
         className={`hidden lg:flex flex-col bg-background border-r transition-all duration-300 ${
-          isOpen ? 'w-80' : 'w-0'
+          isOpen ? "w-80" : "w-0"
         } overflow-hidden`}
       >
         <SidebarContent />
       </div>
 
-      {/* Mobile Sidebar Toggle - Only show when sidebar is closed */}
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button
-            variant="ghost" 
-            size="sm"
-            className={`lg:hidden fixed top-20 left-4 z-50 ${isOpen ? 'hidden' : 'flex'}`}
-            aria-expanded={isOpen}
-            aria-label="Open chat sidebar"
-          >
-            <Menu className="h-4 w-4" />
-          </Button>
-        </SheetTrigger>
+      {/* Mobile Sheet (controlled) */}
+      <Sheet open={isOpen} onOpenChange={() => onToggle()}>
+        {/* Toggle button for mobile — always visible; toggles open/close */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="lg:hidden fixed top-20 left-4 z-50"
+          aria-expanded={isOpen}
+          aria-label={isOpen ? "Close chat sidebar" : "Open chat sidebar"}
+          onClick={() => onToggle()}
+        >
+          <Menu className="h-4 w-4" />
+        </Button>
+
         <SheetContent side="left" className="w-80 p-0">
           <SidebarContent />
         </SheetContent>
       </Sheet>
 
-      {/* Desktop Toggle Button - Only show when sidebar is closed */}
-      {!isOpen && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onToggle}
-          className="hidden lg:flex fixed top-20 left-4 z-50"
-          aria-expanded={isOpen}
-          aria-label="Open chat sidebar"
-        >
-          <Menu className="h-4 w-4" />
-        </Button>
-      )}
+      {/* Desktop Toggle Button — always visible on desktop; toggles open/close */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => onToggle()}
+        className="hidden lg:flex fixed top-20 left-4 z-50"
+        aria-expanded={isOpen}
+        aria-label={isOpen ? "Close chat sidebar" : "Open chat sidebar"}
+      >
+        <Menu className="h-4 w-4" />
+      </Button>
     </>
   );
 }

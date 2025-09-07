@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
 import { CustomCursor } from "@/components/CustomCursor";
 import { ChatBot } from "@/components/ChatBot";
 import { ScrollToTopOnRouteChange } from "@/components/ScrollToTopOnRouteChange";
@@ -14,6 +14,9 @@ import Company from "./pages/Company";
 import ResumeBuilder from "./pages/ResumeBuilder";
 import ATSChecker from "./pages/ATSChecker";
 import AskJod from "./pages/AskJod";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import How from "./pages/How";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,9 +44,16 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/candidate" element={<Candidate />} />
               <Route path="/company" element={<Company />} />
-              <Route path="/resume-builder" element={<ResumeBuilder />} />
-              <Route path="/ats-checker" element={<ATSChecker />} />
               <Route path="/ask-jod" element={<AskJod />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/how" element={<How />} />
+              <Route path="/resumebuilder" element={<ResumeBuilder />} />
+              <Route path="/atschecker" element={<ATSChecker />} />
+              {/* <Route path="/premium" element={<Premium />} />
+              <Route path="/company/top-rated" element={<TopRatedCandidates />} />
+              <Route path="/company/freshers" element={<Freshers />} />
+              <Route path="/company/experienced" element={<Experienced />} /> */}
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
