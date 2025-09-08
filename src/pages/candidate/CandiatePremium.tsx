@@ -5,7 +5,6 @@
  */
 
 import { useState } from "react";
-import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Check, Star, Zap, Crown, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { CandidateHeader } from "@/components/CandidateHeader";
 
 interface PricingTier {
   id: string;
@@ -52,7 +52,7 @@ const PRICING_TIERS: PricingTier[] = [
   {
     id: "growth",
     name: "Growth", 
-    price: "$29",
+    price: "$1",
     period: "/month",
     description: "Accelerate your career with premium features and priority visibility.",
     icon: Zap,
@@ -100,7 +100,7 @@ interface ContactForm {
   message: string;
 }
 
-export default function Premium() {
+export default function CandidatePremium() {
   const [contactOpen, setContactOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("");
   const [form, setForm] = useState<ContactForm>({
@@ -163,8 +163,7 @@ export default function Premium() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-      
+      <CandidateHeader/>
       <main className="pt-16">
         {/* Hero Section */}
         <section className="py-20 px-4">

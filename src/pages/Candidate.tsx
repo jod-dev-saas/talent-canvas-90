@@ -4,18 +4,16 @@ import { ArrowLeft, Upload, User, Mail, Briefcase } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 
-import { Header } from '@/components/Header';
+import { CandidateHeader } from '@/components/CandidateHeader';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-// import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 import { SkillsInput } from '@/components/candidate/SkillsInput';
 import { ProjectsSection } from '@/components/candidate/ProjectsSection';
-// TODO: ProfilePreview removed - no preview card anywhere as per requirements
 import { CandidateProfile } from '@/types/candidate';
 
 export default function Candidate() {
@@ -48,22 +46,9 @@ export default function Candidate() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header />
+    <div className="min-h-screen bg-background flex flex-col pt-20">
+      <CandidateHeader />
       
-      {/* Breadcrumb */}
-      <div className="border-b border-border bg-muted/30">
-        <div className="container mx-auto px-4 py-4">
-          <Link 
-            to="/" 
-            className="inline-flex items-center text-muted-foreground hover:text-primary transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
-          </Link>
-        </div>
-      </div>
-
       {/* Main Content */}
       <main className="container mx-auto px-4 py-12 flex-1">
         <div className="max-w-7xl mx-auto">

@@ -39,7 +39,6 @@ const COMPANY_NAV = [
 
 const MINIMAL_NAV = [
   { label: "Home", href: "/" },
-  // { label: "About", href: "/about" },
   { label: "How it Works", href: "/how" },
   { label: "Contact", href: "/contact" },
   { label: "About", href: "/about" }

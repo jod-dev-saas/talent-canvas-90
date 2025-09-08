@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Phone, Clock, Calendar, Building2, User, MessageCircle, Users } from "lucide-react";
 import { motion } from "framer-motion";
-import { Header } from "@/components/Header";
+import { CandidateHeader } from "@/components/CandidateHeader";
 
 interface ContactForm {
   name: string;
@@ -72,7 +72,7 @@ const DIRECT_OPTIONS = [
   }
 ];
 
-export default function Contact() {
+export default function CandidateContact() {
   const [form, setForm] = useState<ContactForm>({
     name: "",
     email: "",
@@ -140,7 +140,7 @@ export default function Contact() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header/>
+      <CandidateHeader/>
       <main className="pt-16">
         {/* Hero Section */}
         <section className="py-20 px-4">

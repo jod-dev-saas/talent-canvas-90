@@ -12,12 +12,10 @@
  * - TODO: Replace window.print() with server-side PDF generation
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Save, Upload, Download, Trash2, Plus, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +25,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { CandidateHeader } from '@/components/CandidateHeader';
 
 interface Experience {
   id: string;
@@ -310,22 +309,8 @@ export default function ResumeBuilder() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header />
-      
-      {/* Breadcrumb */}
-      <div className="border-b border-border bg-muted/30">
-        <div className="container mx-auto px-4 py-4">
-          <Link 
-            to="/candidate" 
-            className="inline-flex items-center text-muted-foreground hover:text-primary transition-colors min-h-touch"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Candidate
-          </Link>
-        </div>
-      </div>
-
+    <div className="min-h-screen bg-background flex flex-col pt-20">
+      <CandidateHeader/>
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 flex-1">
         <div className="max-w-7xl mx-auto">

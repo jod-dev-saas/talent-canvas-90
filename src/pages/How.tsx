@@ -1,219 +1,290 @@
 /**
- * How It Works Page - JOD process explanation with interactive steps
- * 
- * Shows the 3-step process: Create Profile → Get Discovered → Get Hired
+ * app/candidate/how/page.tsx
+ * Candidate How-It-Works page for JOD (route: /candidate/how)
+ *
+ * Purpose:
+ * - Explain the JOD workflow from a candidate's perspective
+ * - Highlight benefits, tools (resume builder, ATS checker, Ask JOD), and next steps
+ * - Interactive step cards and CTAs to candidate flows
+ *
+ * Notes:
+ * - Client component because it uses local UI state & framer-motion.
+ * - Add README header comments and TODOs for analytics / A/B copy tests.
  */
 
-import { useState } from "react";
-import { Header } from "@/components/Header";
+"use client";
+
+import { useState, useEffect } from "react";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, User, Search, MessageCircle, CheckCircle, Star, Building2, FileText, Zap, Shield, Code, Users } from "lucide-react";
+import {
+  ArrowRight,
+  User,
+  CheckCircle,
+  FileText,
+  Zap,
+  ClipboardList,
+  LifeBuoy,
+  CalendarCheck,
+  Star,
+} from "lucide-react";
 import { motion } from "framer-motion";
+import { CandidateHeader } from "@/components/CandidateHeader";
+import { Header } from "@/components/Header";
+
+export const metadata = {
+  title: "How it Works — Candidates | JOD",
+  description:
+    "Step-by-step guide for candidates: create a project-first profile, optimize with resume & ATS tools, get discovered by companies and land interviews faster.",
+};
 
 const PROCESS_STEPS = [
   {
     id: 1,
-    title: "Create Your Profile",
-    subtitle: "(candidates)",
-    description: "Build a project-first profile — list your skills, showcase projects, link GitHub/portfolio, and upload a resume.",
+    title: "Create a Project-First Profile",
+    description:
+      "Showcase real work — projects, GitHub links, short case-studies, and the skills you actually use.",
     icon: User,
-    color: "from-blue-500 to-cyan-500",
-    details: [
-      "Build a project-first profile — list your skills, showcase projects, link GitHub/portfolio",
-      "Use our Resume Builder to craft a clean, ATS-friendly CV",
-      "Run the ATS Checker to optimize your resume for recruiter systems",
-      "Recruiters see your real work and verified skills — not long, generic resumes"
-    ]
+    highlights: [
+      "Add project links and short impact bullets (what you built and outcomes)",
+      "Add skills as tags so companies can find you via filters",
+      "Upload resume or use our Resume Builder to create an ATS-friendly CV",
+    ],
   },
   {
     id: 2,
-    title: "Browse & Discover",
-    subtitle: "(companies)",
-    description: "Companies search the candidate pool using skill filters, experience level, and project tags.",
-    icon: Search,
-    color: "from-purple-500 to-pink-500",
-    details: [
-      "Companies search using skill filters, experience level, and project tags",
-      "Use Ask JOD to get instant shortlist prompts or role-specific search strings",
-      "View concise candidate profiles and contact top matches directly",
-      "No job posting, no wasted interviews — shorten screening time"
-    ]
+    title: "Optimize & Stand Out",
+    description:
+      "Use JOD's free tools to make your profile discoverable and recruiter-ready.",
+    icon: FileText,
+    highlights: [
+      "Run the ATS Checker to score and fix resume issues",
+      "Pick a clean resume template from Resume Builder and export PDF",
+      "Get quick Ask JOD tips for titles, bullet points, and keywords",
+    ],
   },
   {
     id: 3,
-    title: "Contact, Interview, Hire",
-    subtitle: "",
-    description: "Connect directly through the profile or use the calendar link to schedule interviews.",
-    icon: MessageCircle,
-    color: "from-green-500 to-teal-500",
-    details: [
-      "Connect directly through the profile or use calendar link to schedule interviews",
-      "Export candidate details or download a PDF snapshot for your hiring team",
-      "Request candidate assessments or references for higher confidence",
-      "Smooth flow from discovery → contact → hire reduces time-to-hire and cost-per-hire"
-    ]
-  }
+    title: "Get Discovered & Convert",
+    description:
+      "Companies search our talent pool — get contacted for interviews and schedule calls directly.",
+    icon: CalendarCheck,
+    highlights: [
+      "Set your visibility (public / limited) and preferred roles",
+      "Receive direct messages from hiring teams or share your scheduler link",
+      "Export a PDF snapshot of your profile when requested",
+    ],
+  },
 ];
 
-const DIFFERENTIATORS = [
+const BENEFITS = [
   {
     icon: Zap,
-    title: "Reverse Hiring",
-    description: "Companies search — candidates are discovered",
-    color: "text-yellow-500"
+    title: "Faster Interviews",
+    desc: "Recruiters find qualified candidates quickly — fewer wasted screens.",
   },
   {
-    icon: Code,
-    title: "Project-First Profiles", 
-    description: "Projects > buzzwords",
-    color: "text-blue-500"
+    icon: ClipboardList,
+    title: "Better Match",
+    desc: "Project-first profiles help you land roles that actually fit your experience.",
   },
   {
-    icon: FileText,
-    title: "Candidate Tools Included",
-    description: "Resume Builder, ATS Checker, Profile Boosts",
-    color: "text-green-500"
+    icon: LifeBuoy,
+    title: "Career Guidance",
+    desc: "Ask JOD provides quick, actionable tips for improving your profile and interview prep.",
   },
   {
-    icon: MessageCircle,
-    title: "Ask JOD Assistant",
-    description: "Get recruiter prompts and profile improvement tips instantly",
-    color: "text-purple-500"
+    icon: Star,
+    title: "Showcase Impact",
+    desc: "Highlight measurable outcomes — not just responsibilities.",
   },
-  {
-    icon: Shield,
-    title: "Privacy & Consent",
-    description: "Candidates control what's public and who can contact them",
-    color: "text-red-500"
-  }
 ];
 
 const TESTIMONIALS = [
   {
-    quote: "We cut time-to-hire by 60% using JOD's candidate pool.",
-    author: "Talent Lead, Startup X",
-    role: "Talent Acquisition"
-  }
+    quote:
+      "JOD helped me land my first backend role — I was contacted within 2 weeks of uploading a project-driven profile.",
+    author: "Riya Sharma",
+    role: "Backend Engineer",
+  },
 ];
 
 export default function How() {
-  const [selectedStep, setSelectedStep] = useState<number | null>(null);
+  const [selected, setSelected] = useState<number | null>(1);
+
+  // Accessibility: ensure focus on selected card for keyboard users
+  useEffect(() => {
+    const el = document.querySelector<HTMLElement>(`[data-step="${selected}"]`);
+    if (el) el.focus();
+  }, [selected]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       <Header />
-      
+
       <main className="pt-16">
-        {/* Hero Section */}
-        <section className="py-20 px-4">
-          <div className="container mx-auto max-w-4xl text-center">
+        {/* Hero */}
+        <section className="py-16 px-4">
+          <div className="container mx-auto max-w-3xl text-center">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.5 }}
             >
-              <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
-                How JOD Works
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                How JOD Works — for Candidates
               </h1>
-              <p className="text-2xl text-primary font-semibold mb-4">
-                Hire faster, spend less
+              <p className="text-lg text-muted-foreground mb-6">
+                Create a profile that shows real work. Optimize it for ATS and
+                recruiters. Get discovered — faster.
               </p>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                One platform. Three steps. Zero guesswork.
-              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button asChild aria-label="Create profile">
+                  <a href="/candidate" className="flex items-center gap-2">
+                    Create Profile
+                    <ArrowRight className="h-4 w-4" />
+                  </a>
+                </Button>
+                <Button
+                  variant="ghost"
+                  asChild
+                  aria-label="Open resume builder"
+                >
+                  <a href="/resume-builder">Resume Builder</a>
+                </Button>
+              </div>
             </motion.div>
           </div>
         </section>
 
         {/* Process Steps */}
-        <section className="py-16 px-4">
+        <section className="py-10 px-4">
           <div className="container mx-auto max-w-6xl">
-            <div className="grid lg:grid-cols-3 gap-8">
-              {PROCESS_STEPS.map((step, index) => {
+            <div className="grid lg:grid-cols-3 gap-6">
+              {PROCESS_STEPS.map((step) => {
                 const Icon = step.icon;
+                const active = selected === step.id;
                 return (
-                  <motion.div
+                  <motion.article
                     key={step.id}
-                    initial={{ opacity: 0, y: 20 }}
+                    data-step={step.id}
+                    tabIndex={0}
+                    onClick={() => setSelected(step.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setSelected(step.id);
+                      }
+                    }}
+                    initial={{ opacity: 0, y: 8 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.2 }}
-                    viewport={{ once: true }}
-                    className="relative"
+                    transition={{ duration: 0.4 }}
+                    aria-label={`Step ${step.id}: ${step.title}`}
+                    className={`group cursor-pointer rounded-lg focus:outline-none focus-visible:ring focus-visible:ring-ring ${
+                      active ? "ring-2 ring-primary/40 bg-card" : "bg-card"
+                    }`}
                   >
-                    {/* Connector Line */}
-                    {index < PROCESS_STEPS.length - 1 && (
-                      <div className="hidden lg:block absolute top-24 -right-4 w-8 h-0.5 bg-gradient-to-r from-primary/50 to-transparent z-10" />
-                    )}
-                    
-                    <Card 
-                      className="h-full hover:shadow-lg transition-all duration-300 group cursor-pointer"
-                      onClick={() => setSelectedStep(selectedStep === step.id ? null : step.id)}
-                    >
-                      <CardHeader className="text-center pb-4">
-                        <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                          <Icon className="h-8 w-8 text-white" />
+                    <Card className="h-full">
+                      <CardHeader className="text-center">
+                        <div className="w-14 h-14 mx-auto mb-3 rounded-lg bg-gradient-to-br from-primary/70 to-primary/30 flex items-center justify-center">
+                          <Icon className="h-6 w-6 text-white" aria-hidden />
                         </div>
-                        <Badge variant="outline" className="w-fit mx-auto mb-3">
+                        <Badge className="mx-auto mb-2" variant="outline">
                           Step {step.id}
                         </Badge>
-                        <CardTitle className="text-2xl">
-                          {step.title}
-                          {step.subtitle && (
-                            <span className="block text-lg text-primary font-normal mt-1">
-                              {step.subtitle}
-                            </span>
-                          )}
-                        </CardTitle>
-                        <CardDescription className="text-base">
+                        <CardTitle className="text-lg">{step.title}</CardTitle>
+                        <CardDescription className="text-sm text-muted-foreground max-w-xs mx-auto">
                           {step.description}
                         </CardDescription>
                       </CardHeader>
-                      <CardContent className="space-y-3">
-                        {step.details.map((detail, detailIndex) => (
-                          <div key={detailIndex} className="flex items-start gap-3">
-                            <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-muted-foreground leading-relaxed">{detail}</span>
+
+                      <CardContent className="space-y-3 px-4 pb-4">
+                        {step.highlights.map((h, i) => (
+                          <div
+                            key={i}
+                            className="flex items-start gap-3"
+                            aria-hidden
+                          >
+                            <CheckCircle className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              {h}
+                            </p>
                           </div>
                         ))}
+
+                        <div className="pt-2">
+                          <Button
+                            asChild
+                            className="w-full"
+                            aria-label={`Take action for ${step.title}`}
+                          >
+                            <a
+                              href={
+                                step.id === 1
+                                  ? "/candidate"
+                                  : step.id === 2
+                                  ? "/resume-builder"
+                                  : "/candidate"
+                              }
+                              onClick={() => {
+                                /* TODO: analytics event: click-step-cta */
+                              }}
+                            >
+                              {step.id === 1
+                                ? "Create Profile"
+                                : step.id === 2
+                                ? "Open Resume Builder"
+                                : "Get Discovered"}
+                              <ArrowRight className="ml-2 h-4 w-4" />
+                            </a>
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
-                  </motion.div>
+                  </motion.article>
                 );
               })}
             </div>
           </div>
         </section>
 
-        {/* What Makes JOD Different */}
-        <section className="py-16 px-4 bg-muted/30">
-          <div className="container mx-auto max-w-6xl">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground mb-4">
-                Built for Software Teams — What Makes JOD Different
-              </h2>
+        {/* Benefits */}
+        <section className="py-12 px-4 bg-muted/30">
+          <div className="container mx-auto max-w-5xl">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold">Why Candidates Love JOD</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto mt-2">
+                Designed for software professionals — show what you built and be
+                found by the right people.
+              </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {DIFFERENTIATORS.map((item, index) => {
-                const Icon = item.icon;
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {BENEFITS.map((b, idx) => {
+                const Icon = b.icon;
                 return (
                   <motion.div
-                    key={item.title}
-                    initial={{ opacity: 0, y: 20 }}
+                    key={idx}
+                    initial={{ opacity: 0, y: 6 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    viewport={{ once: true }}
+                    transition={{ duration: 0.35, delay: idx * 0.05 }}
                   >
-                    <Card className="h-full text-center hover:shadow-lg transition-shadow">
+                    <Card className="h-full text-center">
                       <CardHeader>
-                        <Icon className={`h-8 w-8 ${item.color} mx-auto mb-3`} />
-                        <CardTitle className="text-lg">{item.title}</CardTitle>
+                        <Icon className="h-7 w-7 text-primary mx-auto mb-3" />
+                        <CardTitle className="text-base">{b.title}</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-muted-foreground text-sm">{item.description}</p>
+                        <p className="text-sm text-muted-foreground">{b.desc}</p>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -223,100 +294,63 @@ export default function How() {
           </div>
         </section>
 
-        {/* Testimonials */}
-        <section className="py-16 px-4">
-          <div className="container mx-auto max-w-4xl">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground mb-4">
-                What Our Users Say
-              </h2>
-            </div>
+        {/* Testimonial */}
+        <section className="py-12 px-4">
+          <div className="container mx-auto max-w-3xl">
+            {TESTIMONIALS.map((t, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 6 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <Card className="text-center">
+                  <CardContent className="pt-6">
+                    <div className="flex justify-center mb-4">
+                      {[...Array(5)].map((_, j) => (
+                        <Star
+                          key={j}
+                          className="h-4 w-4 text-yellow-400"
+                          aria-hidden
+                        />
+                      ))}
+                    </div>
 
-            <div className="grid gap-6">
-              {TESTIMONIALS.map((testimonial, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6 }}
-                  viewport={{ once: true }}
-                >
-                  <Card className="text-center">
-                    <CardContent className="pt-6">
-                      <div className="flex justify-center mb-4">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-5 w-5 text-yellow-500 fill-current" />
-                        ))}
-                      </div>
-                      <blockquote className="text-lg text-muted-foreground italic mb-4">
-                        "{testimonial.quote}"
-                      </blockquote>
-                      <div className="font-semibold text-foreground">
-                        {testimonial.author}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {testimonial.role}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
+                    <blockquote className="text-lg text-muted-foreground italic mb-4">
+                      “{t.quote}”
+                    </blockquote>
+                    <div className="font-semibold">{t.author}</div>
+                    <div className="text-sm text-muted-foreground">{t.role}</div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-20 px-4 bg-muted/30">
+        {/* CTA */}
+        <section className="py-16 px-4 bg-muted/30">
           <div className="container mx-auto max-w-4xl text-center">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 8 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
+              transition={{ duration: 0.45 }}
             >
-              <h2 className="text-3xl font-bold text-foreground mb-6">
-                Ready to Get Started?
-              </h2>
+              <h3 className="text-2xl font-bold mb-4">
+                Ready to make your profile work for you?
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                Build, optimize, and get discovered — all in one platform.
+              </p>
 
-              <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-center gap-2">
-                      <User className="h-5 w-5 text-primary" />
-                      Candidates
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      Create your profile — it takes less than 10 minutes.
-                    </p>
-                    <Button asChild className="w-full">
-                      <a href="/candidate">
-                        Create Your Profile
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </a>
-                    </Button>
-                  </CardContent>
-                </Card>
+              <div className="grid md:grid-cols-2 gap-4 max-w-xl mx-auto">
+                <Button asChild className="w-full">
+                  <a href="/candidate">Create Profile</a>
+                </Button>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-center gap-2">
-                      <Building2 className="h-5 w-5 text-primary" />
-                      Companies
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      Browse top software talent or schedule a demo.
-                    </p>
-                    <div className="space-y-2">
-                      <Button asChild className="w-full">
-                        <a href="/company">Browse Talent</a>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <Button asChild variant="outline" className="w-full">
+                  <a href="/resume-builder">Try Resume Builder</a>
+                </Button>
               </div>
             </motion.div>
           </div>

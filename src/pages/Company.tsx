@@ -1,23 +1,12 @@
-import { Link } from "react-router-dom";
-import { ArrowLeft, Users, Target, BarChart3 } from "lucide-react";
+import { Users, Target, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CompanyHeader } from "@/components/CompanyHeader";
 
 export default function Company() {
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-background/95 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center">
-          <Link 
-            to="/" 
-            className="inline-flex items-center text-muted-foreground hover:text-primary transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
-          </Link>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background pt-20">
+      <CompanyHeader />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-12">
