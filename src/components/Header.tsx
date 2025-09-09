@@ -32,7 +32,7 @@ const COMPANY_NAV = [
   { label: "Freshers", href: "/company/freshers" },
   { label: "Experienced", href: "/company/experienced" },
   { label: "Filtered Search", href: "/company" },
-  { label: "Ask JOD", href: "/ask-jod" },
+  { label: "Ask JOD", href: "/askjod" },
   // { label: "Contact", href: "/contact" },
   // { label: "About", href: "/about" }
 ];
@@ -52,7 +52,7 @@ export function Header() {
   const location = useLocation();
   
   // Check if current route is Ask JOD to hide the nav button
-  const isOnAskJodPage = location.pathname === '/ask-jod';
+  const isOnAskJodPage = location.pathname === '/askjod';
 
   // Read role from localStorage on mount and listen for changes
   useEffect(() => {
@@ -149,7 +149,7 @@ export function Header() {
               </Badge>
             )}
 
-            {/* Ask JOD Button - Hidden when on /ask-jod page */}
+            {/* Ask JOD Button - Hidden when on /askjod page */}
             {!isOnAskJodPage && (
               <Button 
                 variant="outline" 
@@ -160,12 +160,12 @@ export function Header() {
                   if (typeof window !== 'undefined') {
                     const link = document.createElement('link');
                     link.rel = 'prefetch';
-                    link.href = '/ask-jod';
+                    link.href = '/askjod';
                     document.head.appendChild(link);
                   }
                 }}
               >
-                <Link to="/ask-jod">Ask JOD</Link>
+                <Link to="/askjod">Ask JOD</Link>
               </Button>
             )}
 
@@ -185,7 +185,7 @@ export function Header() {
                 </SheetHeader>
                 <div className="flex flex-col space-y-4 mt-6">
                   {/* Show all nav items in mobile */}
-                  {navItems.filter(item => !(isOnAskJodPage && item.href === '/ask-jod')).map(item => (
+                  {navItems.filter(item => !(isOnAskJodPage && item.href === '/askjod')).map(item => (
                     <Button 
                       key={item.href} 
                       variant="ghost" 

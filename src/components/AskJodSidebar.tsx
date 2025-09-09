@@ -1,11 +1,3 @@
-/**
- * Ask JOD Sidebar - Chat history and navigation
- *
- * - Toggle button now always toggles the sidebar open/close.
- * - Mobile sheet is controlled via isOpen/onToggle props so state stays in sync.
- * - Selecting a conversation closes the sheet on small screens (desktop unchanged).
- */
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -30,12 +22,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Plus,
-  Menu,
   Trash2,
   Download,
   Upload,
   MoreVertical,
   MessageSquare,
+  PanelLeft,
 } from "lucide-react";
 import { Conversation } from "@/pages/AskJod";
 import { formatDistanceToNow } from "date-fns";
@@ -106,31 +98,39 @@ export function AskJodSidebar({
       <div className="p-4 border-b">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-lg font-semibold">Ask JOD</h1>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onExportAll}>
-                <Download className="mr-2 h-4 w-4" />
-                Export All
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleImportClick}>
-                <Upload className="mr-2 h-4 w-4" />
-                Import Chats
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => setShowClearDialog(true)}
-                className="text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Clear All
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2">
+            {/* Mobile-only close button using PanelLeft (replaces cross) */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden h-8 w-8 p-0"
+              aria-label={isOpen ? "Close chat sidebar" : "Open chat sidebar"}
+              onClick={() => onToggle()}
+            >
+              <PanelLeft className="h-4 w-4" />
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={onExportAll}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Export All
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleImportClick}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Import Chats
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => setShowClearDialog(true)}
+                  className="text-destructive"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Clear All
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         <Button
@@ -257,7 +257,7 @@ export function AskJodSidebar({
           aria-label={isOpen ? "Close chat sidebar" : "Open chat sidebar"}
           onClick={() => onToggle()}
         >
-          <Menu className="h-4 w-4" />
+          <PanelLeft className="h-4 w-4" />
         </Button>
 
         <SheetContent side="left" className="w-80 p-0">
@@ -274,7 +274,7 @@ export function AskJodSidebar({
         aria-expanded={isOpen}
         aria-label={isOpen ? "Close chat sidebar" : "Open chat sidebar"}
       >
-        <Menu className="h-4 w-4" />
+        <PanelLeft className="h-4 w-4" />
       </Button>
     </>
   );

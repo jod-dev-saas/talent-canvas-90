@@ -48,19 +48,20 @@ const App = () => (
             <ScrollToTopOnRouteChange />
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/ask-jod" element={<AskJod />} />
+              <Route path="/askjod" element={<AskJod />} />
               <Route path="/about" element={<About />} />
-              <Route path="/how" element={<How/>} />
+              <Route path="/how" element={<How />} />
               <Route path="/contact" element={<Contact />} />
 
               {/* Candidate */}
-              
+
               <Route path="/candidate" element={<Candidate />} />
               <Route path="/candidate/contact" element={<CandidateContact />} />
               <Route path="/candidate/how" element={<CandidateHow />} />
               <Route path="/candidate/resumebuilder" element={<ResumeBuilder />} />
               <Route path="/candidate/atschecker" element={<ATSChecker />} />
               <Route path="/candidate/premium" element={<CandidatePremium />} />
+              <Route path="/candidate/askjod" element={<AskJod />} />
 
               {/* Company */}
 
@@ -71,6 +72,7 @@ const App = () => (
               {/* <Route path="/company/top-rated" element={<TopRatedCandidates />} />
               <Route path="/company/freshers" element={<Freshers />} />
               <Route path="/company/experienced" element={<Experienced />} />  */}
+              <Route path="/company/askjod" element={<AskJod />} />
 
               {/* 404 */}
 

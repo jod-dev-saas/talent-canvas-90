@@ -1,19 +1,19 @@
+// ResumeBuilder.tsx
 /**
  * Resume Builder - Candidate resume creation tool with live preview
- * 
+ *
  * Features:
  * - Multi-section form builder (Profile, Experience, Education, Projects, Skills)
- * - Live preview with printable templates (Classic/Modern)
+ * - Live preview with printable templates (Professional/Creative)
  * - Draft save/load via localStorage key 'jod_resume_draft_v1'
  * - Print-to-PDF functionality
- * 
+ *
  * Environment hooks:
  * - TODO: Replace localStorage with Supabase writes (add auth + RLS first)
  * - TODO: Replace window.print() with server-side PDF generation
  */
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { ArrowLeft, Save, Upload, Download, Trash2, Plus, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Footer } from '@/components/Footer';
@@ -24,7 +24,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { CandidateHeader } from '@/components/CandidateHeader';
 
 interface Experience {
@@ -87,8 +97,9 @@ const emptyResume: ResumeData = {
 };
 
 export default function ResumeBuilder() {
+  // TEMPLATE NAMES CHANGED: 'professional' | 'creative'
   const [resumeData, setResumeData] = useState<ResumeData>(emptyResume);
-  const [template, setTemplate] = useState<'classic' | 'modern'>('classic');
+  const [template, setTemplate] = useState<'professional' | 'creative'>('professional');
   const [newSkill, setNewSkill] = useState('');
   const { toast } = useToast();
 
@@ -98,7 +109,8 @@ export default function ResumeBuilder() {
       saveToLocalStorage();
     }, 15000);
     return () => clearInterval(interval);
-  }, [resumeData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resumeData, template]);
 
   const saveToLocalStorage = () => {
     try {
@@ -126,7 +138,7 @@ export default function ResumeBuilder() {
       if (saved) {
         const { data, template: savedTemplate } = JSON.parse(saved);
         setResumeData(data);
-        setTemplate(savedTemplate || 'classic');
+        setTemplate(savedTemplate || 'professional');
         toast({
           title: "Draft Loaded",
           description: "Your saved resume has been loaded.",
@@ -150,7 +162,7 @@ export default function ResumeBuilder() {
   const clearDraft = () => {
     localStorage.removeItem(STORAGE_KEY);
     setResumeData(emptyResume);
-    setTemplate('classic');
+    setTemplate('professional');
     toast({
       title: "Draft Cleared",
       description: "Resume draft has been cleared.",
@@ -310,7 +322,7 @@ export default function ResumeBuilder() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col pt-20">
-      <CandidateHeader/>
+      <CandidateHeader />
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 flex-1">
         <div className="max-w-7xl mx-auto">
@@ -365,19 +377,19 @@ export default function ResumeBuilder() {
             {/* Left Column - Form */}
             <div className="space-y-6">
               
-              {/* Template Selector */}
+              {/* Template Selector (renamed) */}
               <Card>
                 <CardHeader>
                   <CardTitle>Template Style</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Select value={template} onValueChange={(value: 'classic' | 'modern') => setTemplate(value)}>
+                  <Select value={template} onValueChange={(value: 'professional' | 'creative') => setTemplate(value)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="classic">Classic</SelectItem>
-                      <SelectItem value="modern">Modern</SelectItem>
+                      <SelectItem value="professional">Professional</SelectItem>
+                      <SelectItem value="creative">Creative</SelectItem>
                     </SelectContent>
                   </Select>
                 </CardContent>
@@ -736,8 +748,8 @@ export default function ResumeBuilder() {
                 </CardHeader>
                 <CardContent>
                   <div 
-                    className={`resume-preview bg-white text-black p-6 rounded border min-h-[800px] ${
-                      template === 'modern' ? 'resume-modern' : 'resume-classic'
+                    className={`resume-preview bg-white text-black p-6 rounded border min-h-[700px] ${
+                      template === 'creative' ? 'resume-creative' : 'resume-professional'
                     }`}
                     style={{ fontFamily: 'Arial, sans-serif', fontSize: '14px', lineHeight: '1.4' }}
                   >

@@ -28,7 +28,7 @@ export function CompanyHeader() {
   const location = useLocation();
   
   // Check if current route is Ask JOD to hide the nav button
-  const isOnAskJodPage = location.pathname === '/ask-jod';
+  const isOnAskJodPage = location.pathname === '/askjod';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -70,7 +70,7 @@ export function CompanyHeader() {
 
         {/* Right Section */}
         <div className="flex items-center space-x-4">
-          {/* Ask JOD Button - Hidden when on /ask-jod page */}
+          {/* Ask JOD Button - Hidden when on /askjod page */}
           {!isOnAskJodPage && (
             <Button 
               variant="outline" 
@@ -81,12 +81,12 @@ export function CompanyHeader() {
                 if (typeof window !== 'undefined') {
                   const link = document.createElement('link');
                   link.rel = 'prefetch';
-                  link.href = '/ask-jod';
+                  link.href = '/askjod';
                   document.head.appendChild(link);
                 }
               }}
             >
-              <Link to="/ask-jod">Ask JOD</Link>
+              <Link to="/company/askjod">Ask JOD</Link>
             </Button>
           )}
 
@@ -127,7 +127,7 @@ export function CompanyHeader() {
                         asChild
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        <Link to="/ask-jod">Ask JOD</Link>
+                        <Link to="/askjod">Ask JOD</Link>
                       </Button>
                     </div>
                   </>

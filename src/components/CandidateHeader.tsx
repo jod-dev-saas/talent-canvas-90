@@ -10,8 +10,7 @@ import { Link, useLocation } from "react-router-dom";
 import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge";
-import { Menu, User } from "lucide-react";
+import { Menu } from "lucide-react";
 
 const CANDIDATE_NAV = [
   { label: "Home", href: "/" },
@@ -28,7 +27,7 @@ export function CandidateHeader() {
   const location = useLocation();
   
   // Check if current route is Ask JOD to hide the nav button
-  const isOnAskJodPage = location.pathname === '/ask-jod';
+  const isOnAskJodPage = location.pathname === 'candidate/askjod';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -70,7 +69,7 @@ export function CandidateHeader() {
 
         {/* Right Section */}
         <div className="flex items-center space-x-4">
-          {/* Ask JOD Button - Hidden when on /ask-jod page */}
+          {/* Ask JOD Button - Hidden when on /askjod page */}
           {!isOnAskJodPage && (
             <Button 
               variant="outline" 
@@ -81,12 +80,12 @@ export function CandidateHeader() {
                 if (typeof window !== 'undefined') {
                   const link = document.createElement('link');
                   link.rel = 'prefetch';
-                  link.href = '/ask-jod';
+                  link.href = '/askjod';
                   document.head.appendChild(link);
                 }
               }}
             >
-              <Link to="/ask-jod">Ask JOD</Link>
+              <Link to="/candidate/askjod">Ask JOD</Link>
             </Button>
           )}
 
@@ -127,7 +126,7 @@ export function CandidateHeader() {
                         asChild
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        <Link to="/ask-jod">Ask JOD</Link>
+                        <Link to="/askjod">Ask JOD</Link>
                       </Button>
                     </div>
                   </>
