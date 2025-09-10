@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Upload, User, Mail, Briefcase } from 'lucide-react';
+import { useState } from 'react';
+import { Upload, User, Briefcase } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 

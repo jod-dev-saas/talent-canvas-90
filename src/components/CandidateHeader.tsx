@@ -14,11 +14,11 @@ import { Menu } from "lucide-react";
 
 const CANDIDATE_NAV = [
   { label: "Home", href: "/" },
+  { label: "Profile", href: "/candidate/profile" },
   { label: "Resume Builder", href: "/candidate/resumebuilder" },
   { label: "ATS Checker", href: "/candidate/atschecker" },
   { label: "Premium", href: "/candidate/premium" },
-  { label: "Contact", href: "/candidate/contact" },
-  { label: "How it Works", href: "/candidate/how" }
+  { label: "Workflow", href: "/candidate/how" }
 ];
 
 export function CandidateHeader() {

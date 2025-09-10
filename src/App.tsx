@@ -19,7 +19,7 @@ import NotFound from "./pages/NotFound";
 import CompanyHow from "./pages/company/CompanyHow";
 import CompanyContact from "./pages/company/CompanyContact";
 import CandidateContact from "./pages/candidate/CandidateContact";
-import CandidateHow from "./pages/How";
+import CandidateHow from "./pages/candidate/CandidateHow";
 import CandidatePremium from "./pages/candidate/CandiatePremium";
 import CompanyPremium from "./pages/company/CompanyPremium";
 import How from "./pages/How";

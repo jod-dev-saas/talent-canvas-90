@@ -37,60 +37,59 @@ const PRICING_TIERS: PricingTier[] = [
     name: "Starter",
     price: "Free",
     period: "",
-    description: "Perfect for exploring opportunities and building your professional presence.",
+    description:
+      "Perfect for exploring opportunities and building your professional presence.",
     icon: Star,
     features: [
-      "Create detailed profile",
-      "Basic skill assessments", 
-      "Apply to up to 10 jobs/month",
+      "Create a detailed profile",
       "Standard profile visibility",
-      "Community support"
+      // "",
+      // ""
     ],
     cta: "Get Started Free",
-    ctaVariant: "outline"
+    ctaVariant: "outline",
   },
   {
     id: "growth",
-    name: "Growth", 
-    price: "$1",
+    name: "Growth",
+    price: "₹9",
     period: "/month",
-    description: "Accelerate your career with premium features and priority visibility.",
+    description:
+      "Accelerate your career with premium features and priority visibility.",
     icon: Zap,
     popular: true,
     features: [
       "Everything in Starter",
-      "Unlimited job applications",
-      "Priority profile visibility",
+      "Enhanced profile visibility",
       "Advanced skill verifications",
-      "Resume optimization tools",
+      "Resume optimization guidance",
       "Interview preparation resources",
       "Direct messaging with companies",
-      "Salary negotiation guidance"
     ],
-    cta: "Start 7-Day Trial",
-    ctaVariant: "default"
+    cta: "Purchase",
+    ctaVariant: "default",
   },
   {
-    id: "enterprise", 
-    name: "Enterprise",
-    price: "Custom",
-    period: "",
-    description: "Tailored solutions for companies and high-volume talent acquisition.",
+    id: "booster",
+    name: "Booster",
+    price: "₹99",
+    period: "/month",
+    description:
+      "Tailored solutions for companies and high-volume talent acquisition.",
     icon: Crown,
     features: [
       "Everything in Growth",
-      "Custom branding options",
+      "Maximum profile visibility",
+      "Dedicated personal webpage",
       "Advanced analytics dashboard",
       "Dedicated account manager",
-      "API access for integrations",
-      "Custom skill assessments",
-      "Bulk hiring tools",
-      "Priority customer support"
+      "Direct profile sharing with companies"
     ],
-    cta: "Contact Sales",
-    ctaVariant: "outline"
-  }
+    cta: "Purchase",
+    ctaVariant: "outline",
+  },
 ];
+
 
 interface ContactForm {
   name: string;
@@ -180,9 +179,6 @@ export default function CandidatePremium() {
                 Choose the plan that fits your career goals. Get premium features, 
                 priority visibility, and dedicated support to land your dream job faster.
               </p>
-              <Badge variant="secondary" className="text-sm px-4 py-2">
-                ✨ 7-day free trial • No credit card required
-              </Badge>
             </motion.div>
           </div>
         </section>
