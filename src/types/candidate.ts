@@ -15,6 +15,22 @@ export interface CandidateProfile {
   
   // Resume
   resumeFile?: File | null;
+
+  // Job preferences
+  jobSeekingType: string;
+  jobPreference: string;
+  expectedSalary?: string;
+  preferredLocations: string[];
+  noticePeriod?: string;
+
+  // Additional info
+  linkedin?: string;
+  github?: string;
+  portfolio?: string;
+  openToRelocate?: boolean | 'maybe';
+  education?: string;
+  graduationYear?: string;
+  additionalNotes?: string;
 }
 
 export interface Project {

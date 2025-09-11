@@ -121,6 +121,13 @@ const defaultSettings: ResumeSettings = {
   showIcons: true
 };
 
+// URL Validation Regex
+const urlValidators = {
+  linkedin: /^https?:\/\/(www\.)?linkedin\.com\/(in|pub)\/[a-zA-Z0-9-]+\/?$/,
+  github: /^https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9-]+\/?$/,
+  general: /^https?:\/\/(www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(\/.*)?$/
+};
+
 // Sample data for demo
 const sampleData: ResumeData = {
   picture: 'https://lh3.googleusercontent.com/a/ACg8ocI8NFOsWNf4SLxz0RhUvc396v2S_00ky98azXTQ7zd-7a_wlA=s96-c',
@@ -210,12 +217,18 @@ const Button: React.FC<ButtonProps> = ({ children, onClick, variant = 'default',
   );
 };
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> { className?: string }
-const Input: React.FC<InputProps> = ({ className = '', ...props }) => (
-  <input
-    className={`w-full px-3 py-2 border border-input bg-background rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus:border-transparent ${className}`}
-    {...props}
-  />
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> { 
+  className?: string;
+  error?: string;
+}
+const Input: React.FC<InputProps> = ({ className = '', error, ...props }) => (
+  <div>
+    <input
+      className={`w-full px-3 py-2 border ${error ? 'border-red-500' : 'border-input'} bg-background rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus:border-transparent ${className}`}
+      {...props}
+    />
+    {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+  </div>
 );
 
 interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> { className?: string }
@@ -273,26 +286,6 @@ const Select: React.FC<SelectProps> = ({ children, value, onValueChange, classNa
   </select>
 );
 
-const AlertDialog: React.FC<{ children: React.ReactNode; open: boolean; onOpenChange: (open: boolean) => void }> = ({ children, open, onOpenChange }) => {
-  if (!open) return <>{children}</>;
-  
-  return (
-    <>
-      {children}
-      <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-        <div className="bg-card border border-border rounded-lg p-6 max-w-md w-full">
-          <h3 className="text-lg font-semibold mb-2">Clear Resume Draft?</h3>
-          <p className="text-muted-foreground mb-4">This will permanently delete your current resume draft. This action cannot be undone.</p>
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={() => { onOpenChange(false); /* clear action */ }}>Clear Draft</Button>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
-
 // Template Previews
 interface TemplatePreviewProps {
   template: 'classic' | 'blue' | 'photo-left';
@@ -328,7 +321,6 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ template, selected, o
         template === 'blue' ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
         'bg-gradient-to-r from-orange-400 to-orange-500'
       }`}>
-        {/* Template preview mockup */}
         <div className="p-2 h-full">
           {template === 'classic' && (
             <div className="flex h-full">
@@ -377,6 +369,7 @@ const ResumeBuilder: React.FC = () => {
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [newSkill, setNewSkill] = useState('');
   const [newLanguage, setNewLanguage] = useState('');
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
 
   // Auto-save functionality
   useEffect(() => {
@@ -386,7 +379,23 @@ const ResumeBuilder: React.FC = () => {
     return () => clearInterval(interval);
   }, [resumeData, settings]);
 
-  // Helper functions with exact names from requirements
+  // URL Validation
+  const validateUrl = (url: string, platform?: string): string | null => {
+    if (!url.trim()) return null;
+    
+    if (platform === 'LinkedIn' && !urlValidators.linkedin.test(url)) {
+      return 'Please enter a valid LinkedIn URL (e.g., https://linkedin.com/in/username)';
+    }
+    if (platform === 'GitHub' && !urlValidators.github.test(url)) {
+      return 'Please enter a valid GitHub URL (e.g., https://github.com/username)';
+    }
+    if (!platform && !urlValidators.general.test(url)) {
+      return 'Please enter a valid URL';
+    }
+    return null;
+  };
+
+  // Helper functions
   const saveToLocalStorage = () => {
     try {
       const dataToSave = {
@@ -395,17 +404,18 @@ const ResumeBuilder: React.FC = () => {
         customizations: settings,
         lastSavedAt: new Date().toISOString()
       };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+      // Using in-memory storage instead of localStorage
+      (window as any).resumeDraftData = dataToSave;
     } catch (error) {
-      console.error('Failed to save to localStorage:', error);
+      console.error('Failed to save draft:', error);
     }
   };
 
   const loadDraft = () => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = (window as any).resumeDraftData;
       if (saved) {
-        const { data, template, customizations } = JSON.parse(saved);
+        const { data, template, customizations } = saved;
         setResumeData(data || sampleData);
         setSettings(prev => ({ ...prev, template: template || 'classic', ...customizations }));
         alert('Draft loaded successfully!');
@@ -418,45 +428,359 @@ const ResumeBuilder: React.FC = () => {
   };
 
   const clearDraft = () => {
-    localStorage.removeItem(STORAGE_KEY);
+    delete (window as any).resumeDraftData;
     setResumeData(emptyResume);
     setSettings(defaultSettings);
     setShowClearDialog(false);
     alert('Draft cleared successfully!');
   };
 
-  const downloadPDF = () => {
-    // Client-side PDF generation using print
-    const printWindow = window.open('', '_blank');
+  const downloadPDF = async () => {
     const previewEl = document.getElementById('resume-preview');
-    if (!printWindow || !previewEl) return;
+    if (!previewEl) return;
+
+    // Create a new window for PDF generation
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    // Generate comprehensive CSS for PDF
+    const pdfCSS = `
+      <style>
+        * {
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+        }
+        
+        body {
+          font-family: ${settings.fontFamily}, Arial, sans-serif;
+          line-height: 1.4;
+          color: #1f2937;
+          background: white;
+          margin: 0;
+          padding: 0;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        
+        .resume-preview {
+          width: 8.5in;
+          min-height: 11in;
+          margin: 0 auto;
+          background: white;
+          font-size: 11px;
+          line-height: 1.4;
+        }
+        
+        /* Template Classic Styles */
+        .template-classic {
+          display: flex;
+          min-height: 11in;
+        }
+        
+        .template-classic .sidebar {
+          width: 2.8in;
+          background-color: #f8fafc;
+          padding: 1.2rem;
+          border-right: 1px solid #e2e8f0;
+        }
+        
+        .template-classic .main-content {
+          flex: 1;
+          padding: 1.2rem;
+          background: white;
+        }
+        
+        /* Template Blue Styles */
+        .template-blue .blue-header {
+          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+          color: white;
+          padding: 1.5rem;
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+        }
+        
+        .template-blue .content-wrapper {
+          display: flex;
+          gap: 2rem;
+          padding: 1.5rem;
+        }
+        
+        .template-blue .left-sidebar {
+          width: 2.5in;
+        }
+        
+        .template-blue .main-content {
+          flex: 1;
+        }
+        
+        /* Template Photo Left Styles */
+        .template-photo-left {
+          display: flex;
+          min-height: 11in;
+        }
+        
+        .template-photo-left .photo-sidebar {
+          width: 2.8in;
+          background-color: #f1f5f9;
+        }
+        
+        .template-photo-left .main-wrapper {
+          flex: 1;
+        }
+        
+        .template-photo-left .colored-header {
+          background: ${settings.accentColor};
+          color: white;
+          padding: 1.5rem;
+        }
+        
+        .template-photo-left .main-content {
+          padding: 1.5rem;
+        }
+        
+        /* Common Typography */
+        h1 {
+          font-size: 24px;
+          font-weight: 700;
+          margin-bottom: 0.5rem;
+          line-height: 1.2;
+        }
+        
+        h2 {
+          font-size: 16px;
+          font-weight: 700;
+          margin-bottom: 0.75rem;
+          line-height: 1.3;
+        }
+        
+        h3 {
+          font-size: 14px;
+          font-weight: 600;
+          margin-bottom: 0.5rem;
+          line-height: 1.3;
+        }
+        
+        h4 {
+          font-size: 12px;
+          font-weight: 600;
+          margin-bottom: 0.25rem;
+        }
+        
+        p {
+          margin-bottom: 0.5rem;
+          line-height: 1.4;
+        }
+        
+        /* Profile Image */
+        .profile-image {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 3px solid white;
+        }
+        
+        .profile-image-large {
+          width: 120px;
+          height: 120px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 4px solid white;
+        }
+        
+        .profile-image-full {
+          width: 100%;
+          height: 240px;
+          object-fit: cover;
+        }
+        
+        /* Contact Info */
+        .contact-item {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 0.5rem;
+          font-size: 10px;
+        }
+        
+        .contact-icon {
+          width: 12px;
+          height: 12px;
+          flex-shrink: 0;
+        }
+        
+        /* Sections */
+        .section {
+          margin-bottom: 1.5rem;
+          break-inside: avoid;
+        }
+        
+        .section-title {
+          font-size: 13px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 0.75rem;
+          padding-bottom: 0.25rem;
+          border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .section-title-blue {
+          color: #2563eb;
+          border-bottom-color: #2563eb;
+        }
+        
+        .section-title-accent {
+          color: ${settings.accentColor};
+          border-bottom-color: ${settings.accentColor};
+        }
+        
+        /* Experience */
+        .experience-item {
+          margin-bottom: 1.5rem;
+          break-inside: avoid;
+        }
+        
+        .experience-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 0.5rem;
+        }
+        
+        .experience-company {
+          font-weight: 700;
+          font-size: 13px;
+        }
+        
+        .experience-role {
+          font-weight: 600;
+          font-size: 12px;
+          color: #4b5563;
+          margin-bottom: 0.25rem;
+        }
+        
+        .experience-date {
+          font-size: 10px;
+          color: #6b7280;
+          text-align: right;
+          flex-shrink: 0;
+        }
+        
+        .bullet-list {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+        }
+        
+        .bullet-item {
+          position: relative;
+          padding-left: 1rem;
+          margin-bottom: 0.25rem;
+          font-size: 10px;
+          line-height: 1.4;
+        }
+        
+        .bullet-item:before {
+          content: '•';
+          position: absolute;
+          left: 0;
+          color: ${settings.accentColor};
+          font-weight: bold;
+        }
+        
+        /* Skills */
+        .skills-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.25rem;
+        }
+        
+        .skill-tag {
+          background: #f1f5f9;
+          color: #475569;
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          font-size: 9px;
+          font-weight: 500;
+        }
+        
+        /* Utilities */
+        .text-white { color: white; }
+        .text-muted { color: #6b7280; }
+        .text-sm { font-size: 10px; }
+        .text-xs { font-size: 9px; }
+        .font-bold { font-weight: 700; }
+        .font-semibold { font-weight: 600; }
+        .font-medium { font-weight: 500; }
+        .mb-1 { margin-bottom: 0.25rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-3 { margin-bottom: 0.75rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-1 { gap: 0.25rem; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
+        
+        /* Print optimizations */
+        @page {
+          margin: 0.5in;
+          size: letter;
+        }
+        
+        @media print {
+          body { 
+            margin: 0; 
+            padding: 0; 
+          }
+          .resume-preview { 
+            box-shadow: none; 
+            border: none;
+            page-break-inside: avoid;
+          }
+          .section {
+            page-break-inside: avoid;
+          }
+          .experience-item {
+            page-break-inside: avoid;
+          }
+        }
+      </style>
+    `;
+
+    // Get clean HTML content
     const resumeHTML = previewEl.innerHTML;
-    
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Resume - ${resumeData.fullName}</title>
-          <style>
-            body { font-family: ${settings.fontFamily}, Arial, sans-serif; margin: 0; padding: 20px; }
-            .resume-preview { max-width: 8.5in; margin: 0 auto; }
-            @media print {
-              body { margin: 0; padding: 0; }
-              .resume-preview { box-shadow: none; border: none; }
-            }
-            @page { margin: 0.5in; }
-          </style>
+          <meta charset="UTF-8">
+          <title>Resume</title>
+          ${pdfCSS}
         </head>
         <body>
           <div class="resume-preview">
             ${resumeHTML}
           </div>
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+                window.close();
+              }, 500);
+            };
+          </script>
         </body>
       </html>
     `);
     
     printWindow.document.close();
-    printWindow.print();
   };
 
   // CRUD functions for Experience
@@ -599,6 +923,44 @@ const ResumeBuilder: React.FC = () => {
     } as ResumeData));
   };
 
+  // Profile functions with URL validation
+  const addProfile = () => {
+    const newProfile: Profile = {
+      id: Date.now().toString(),
+      platform: 'LinkedIn',
+      label: '',
+      url: ''
+    };
+    setResumeData(prev => ({ ...prev, profiles: [...prev.profiles, newProfile] }));
+  };
+
+  const removeProfile = (id: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      profiles: prev.profiles.filter(profile => profile.id !== id)
+    }));
+  };
+
+  const updateProfile = (id: string, field: keyof Profile, value: string) => {
+    const error = field === 'url' ? validateUrl(value, resumeData.profiles.find(p => p.id === id)?.platform) : null;
+    if (error) {
+      setErrors(prev => ({ ...prev, [`profile_${id}_${field}`]: error }));
+    } else {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[`profile_${id}_${field}`];
+        return newErrors;
+      });
+    }
+
+    setResumeData(prev => ({
+      ...prev,
+      profiles: prev.profiles.map(profile =>
+        profile.id === id ? { ...profile, [field]: value } : profile
+      )
+    }));
+  };
+
   // Template-specific styling
   const getTemplateClasses = () => {
     switch (settings.template) {
@@ -619,52 +981,54 @@ const ResumeBuilder: React.FC = () => {
     return (
       <div 
         id="resume-preview"
-        className={`resume-preview ${templateClasses} bg-card text-foreground`}
+        className={`resume-preview ${templateClasses} bg-white text-gray-800`}
         style={{ 
-          fontFamily: settings.fontFamily
+          fontFamily: settings.fontFamily,
+          fontSize: '11px',
+          lineHeight: '1.4'
         }}
       >
         {settings.template === 'classic' && (
-          <div className="flex min-h-full">
+          <div className="template-classic">
             {/* Left Sidebar */}
-            <div className="w-1/3 bg-muted p-6">
+            <div className="sidebar">
               {/* Profile Picture */}
               {resumeData.picture && (
-                <div className="mb-6">
+                <div className="mb-6 text-center">
                   <img 
                     src={resumeData.picture} 
                     alt="Profile" 
-                    className="w-24 h-24 rounded-full mx-auto object-cover"
+                    className="profile-image mx-auto"
                   />
                 </div>
               )}
               
               {/* Contact Info */}
-              <div className="mb-6">
-                <h3 className="text-sm font-bold mb-3 pb-2 border-b border-border">CONTACT</h3>
-                <div className="space-y-2 text-sm">
+              <div className="section">
+                <h3 className="section-title">CONTACT</h3>
+                <div className="space-y-2">
                   {resumeData.phone && (
-                    <div className="flex items-center gap-2">
-                      {settings.showIcons && <Phone className="w-3 h-3" />}
-                      <span>{resumeData.phone}</span>
+                    <div className="contact-item">
+                      {settings.showIcons && <Phone className="contact-icon" />}
+                      <span className="text-xs">{resumeData.phone}</span>
                     </div>
                   )}
                   {resumeData.email && (
-                    <div className="flex items-center gap-2">
-                      {settings.showIcons && <Mail className="w-3 h-3" />}
-                      <span>{resumeData.email}</span>
+                    <div className="contact-item">
+                      {settings.showIcons && <Mail className="contact-icon" />}
+                      <span className="text-xs">{resumeData.email}</span>
                     </div>
                   )}
                   {resumeData.location && (
-                    <div className="flex items-center gap-2">
-                      {settings.showIcons && <MapPin className="w-3 h-3" />}
-                      <span>{resumeData.location}</span>
+                    <div className="contact-item">
+                      {settings.showIcons && <MapPin className="contact-icon" />}
+                      <span className="text-xs">{resumeData.location}</span>
                     </div>
                   )}
                   {resumeData.website && (
-                    <div className="flex items-center gap-2">
-                      {settings.showIcons && <Globe className="w-3 h-3" />}
-                      <span className="break-all">{resumeData.website}</span>
+                    <div className="contact-item">
+                      {settings.showIcons && <Globe className="contact-icon" />}
+                      <span className="text-xs break-all">{resumeData.website}</span>
                     </div>
                   )}
                 </div>
@@ -672,17 +1036,17 @@ const ResumeBuilder: React.FC = () => {
 
               {/* Profiles */}
               {resumeData.profiles.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-sm font-bold mb-3 pb-2 border-b border-border">PROFILES</h3>
-                  <div className="space-y-2 text-sm">
+                <div className="section">
+                  <h3 className="section-title">PROFILES</h3>
+                  <div className="space-y-2">
                     {resumeData.profiles.map((profile) => (
-                      <div key={profile.id} className="flex items-center gap-2">
+                      <div key={profile.id} className="contact-item">
                         {settings.showIcons && (
-                          profile.platform === 'GitHub' ? <Github className="w-3 h-3" /> :
-                          profile.platform === 'LinkedIn' ? <Linkedin className="w-3 h-3" /> :
-                          <Globe className="w-3 h-3" />
+                          profile.platform === 'GitHub' ? <Github className="contact-icon" /> :
+                          profile.platform === 'LinkedIn' ? <Linkedin className="contact-icon" /> :
+                          <Globe className="contact-icon" />
                         )}
-                        <span className="break-all">{profile.label}</span>
+                        <span className="text-xs break-all">{profile.label}</span>
                       </div>
                     ))}
                   </div>
@@ -691,9 +1055,9 @@ const ResumeBuilder: React.FC = () => {
 
               {/* Skills */}
               {resumeData.skills.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-sm font-bold mb-3 pb-2 border-b border-border">TECHNICAL SKILLS</h3>
-                  <div className="text-sm">
+                <div className="section">
+                  <h3 className="section-title">TECHNICAL SKILLS</h3>
+                  <div className="text-xs">
                     {resumeData.skills.join(', ')}
                   </div>
                 </div>
@@ -701,9 +1065,9 @@ const ResumeBuilder: React.FC = () => {
 
               {/* Languages */}
               {resumeData.languages.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-sm font-bold mb-3 pb-2 border-b border-border">LANGUAGES</h3>
-                  <div className="text-sm space-y-1">
+                <div className="section">
+                  <h3 className="section-title">LANGUAGES</h3>
+                  <div className="text-xs space-y-1">
                     {resumeData.languages.map((language) => (
                       <div key={language}>{language}</div>
                     ))}
@@ -713,9 +1077,9 @@ const ResumeBuilder: React.FC = () => {
 
               {/* Certifications */}
               {resumeData.certifications.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-sm font-bold mb-3 pb-2 border-b border-border">CERTIFICATIONS</h3>
-                  <div className="text-sm space-y-1">
+                <div className="section">
+                  <h3 className="section-title">CERTIFICATIONS</h3>
+                  <div className="text-xs space-y-1">
                     {resumeData.certifications.map((cert, index) => (
                       <div key={index}>• {cert}</div>
                     ))}
@@ -725,44 +1089,47 @@ const ResumeBuilder: React.FC = () => {
             </div>
 
             {/* Right Content */}
-            <div className="flex-1 p-6">
+            <div className="main-content">
               {/* Header */}
               <div className="mb-6">
-                <h1 className="text-3xl font-bold mb-2 uppercase tracking-wide">{resumeData.fullName || 'YOUR NAME'}</h1>
-                <p className="text-lg text-muted-foreground mb-4">{resumeData.headline || 'Professional Title'}</p>
+                <h1 className="text-2xl font-bold mb-2 uppercase tracking-wide">
+                  {resumeData.fullName || 'YOUR NAME'}
+                </h1>
+                <p className="text-lg text-gray-600 mb-4">
+                  {resumeData.headline || 'Professional Title'}
+                </p>
               </div>
 
               {/* Summary */}
               {resumeData.summary && (
-                <div className="mb-6">
-                  <h2 className="text-lg font-bold mb-3 pb-2 border-b border-border">SUMMARY</h2>
+                <div className="section">
+                  <h2 className="section-title">SUMMARY</h2>
                   <p className="text-sm leading-relaxed">{resumeData.summary}</p>
                 </div>
               )}
 
               {/* Experience */}
               {resumeData.experience.length > 0 && (
-                <div className="mb-6">
-                  <h2 className="text-lg font-bold mb-3 pb-2 border-b border-border">WORK EXPERIENCE</h2>
+                <div className="section">
+                  <h2 className="section-title">WORK EXPERIENCE</h2>
                   {resumeData.experience.map((exp) => (
-                    <div key={exp.id} className="mb-4 break-inside-avoid">
-                      <div className="flex justify-between items-start mb-1">
+                    <div key={exp.id} className="experience-item">
+                      <div className="experience-header">
                         <div>
-                          <h3 className="font-bold">{exp.company || 'Company Name'}</h3>
-                          <p className="text-foreground font-medium">{exp.role || 'Job Title'}</p>
+                          <div className="experience-company">{exp.company || 'Company Name'}</div>
+                          <div className="experience-role">{exp.role || 'Job Title'}</div>
                         </div>
-                        <div className="text-sm text-muted-foreground text-right">
-                          <div className="text-destructive">•</div>
+                        <div className="experience-date">
+                          <div className="text-red-600 text-center">•</div>
                           <div>
                             {exp.startDate ? new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Start'} — {exp.current ? 'Present' : exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'End'}
                           </div>
                         </div>
                       </div>
-                      <div className="text-sm mb-2">{exp.company} description goes here.</div>
                       {exp.bullets.filter(b => b.trim()).length > 0 && (
-                        <ul className="text-sm space-y-1">
+                        <ul className="bullet-list">
                           {exp.bullets.filter(b => b.trim()).map((bullet, index) => (
-                            <li key={index}>• {bullet}</li>
+                            <li key={index} className="bullet-item">{bullet}</li>
                           ))}
                         </ul>
                       )}
@@ -773,17 +1140,17 @@ const ResumeBuilder: React.FC = () => {
 
               {/* Education */}
               {resumeData.education.length > 0 && (
-                <div className="mb-6">
-                  <h2 className="text-lg font-bold mb-3 pb-2 border-b border-border">EDUCATION</h2>
+                <div className="section">
+                  <h2 className="section-title">EDUCATION</h2>
                   {resumeData.education.map((edu) => (
                     <div key={edu.id} className="mb-3">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="font-bold">{edu.institution || 'Institution'}</h3>
-                          <p className="text-foreground">{edu.degree || 'Degree'} {edu.field ? `of ${edu.field}` : ''}</p>
+                          <h3 className="font-bold text-sm">{edu.institution || 'Institution'}</h3>
+                          <p className="text-sm">{edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}</p>
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          {edu.graduationYear ? `${edu.graduationYear.includes('-') ? new Date(edu.graduationYear).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : edu.graduationYear}` : 'Graduation Year'}
+                        <div className="text-xs text-gray-600">
+                          {edu.graduationYear || 'Graduation Year'}
                         </div>
                       </div>
                     </div>
@@ -795,42 +1162,46 @@ const ResumeBuilder: React.FC = () => {
         )}
 
         {settings.template === 'blue' && (
-          <div className="min-h-full">
+          <div className="template-blue">
             {/* Blue Header */}
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-8 rounded-t-lg">
+            <div className="blue-header">
               <div className="flex items-center gap-6">
                 {resumeData.picture && (
                   <img 
                     src={resumeData.picture} 
                     alt="Profile" 
-                    className="w-32 h-32 rounded object-cover border-4 border-white"
+                    className="profile-image-large"
                   />
                 )}
                 <div className="flex-1">
-                  <h1 className="text-4xl font-bold mb-2">{resumeData.fullName || 'John Doe'}</h1>
-                  <p className="text-xl/none text-white/80 mb-4">{resumeData.headline || 'Creative and Innovative Web Developer'}</p>
-                  <div className="flex flex-wrap gap-4 text-sm">
+                  <h1 className="text-4xl font-bold mb-2 text-white">
+                    {resumeData.fullName || 'John Doe'}
+                  </h1>
+                  <p className="text-xl text-white/90 mb-4">
+                    {resumeData.headline || 'Creative and Innovative Web Developer'}
+                  </p>
+                  <div className="flex flex-wrap gap-4 text-sm text-white/80">
                     {resumeData.location && (
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
+                      <div className="contact-item">
+                        <MapPin className="contact-icon" />
                         <span>{resumeData.location}</span>
                       </div>
                     )}
                     {resumeData.phone && (
-                      <div className="flex items-center gap-1">
-                        <Phone className="w-4 h-4" />
+                      <div className="contact-item">
+                        <Phone className="contact-icon" />
                         <span>{resumeData.phone}</span>
                       </div>
                     )}
                     {resumeData.email && (
-                      <div className="flex items-center gap-1">
-                        <Mail className="w-4 h-4" />
+                      <div className="contact-item">
+                        <Mail className="contact-icon" />
                         <span>{resumeData.email}</span>
                       </div>
                     )}
                     {resumeData.website && (
-                      <div className="flex items-center gap-1">
-                        <Globe className="w-4 h-4" />
+                      <div className="contact-item">
+                        <Globe className="contact-icon" />
                         <span>{resumeData.website}</span>
                       </div>
                     )}
@@ -839,21 +1210,21 @@ const ResumeBuilder: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex p-6 gap-8">
+            <div className="content-wrapper">
               {/* Left Sidebar */}
-              <div className="w-1/3 space-y-6">
+              <div className="left-sidebar space-y-6">
                 {/* Profiles */}
                 {resumeData.profiles.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-bold mb-3 text-blue-700">Profiles</h3>
+                  <div className="section">
+                    <h3 className="section-title-blue">Profiles</h3>
                     <div className="space-y-2">
                       {resumeData.profiles.map((profile) => (
-                        <div key={profile.id} className="flex items-center gap-2 text-sm">
-                          {profile.platform === 'LinkedIn' && <Linkedin className="w-4 h-4 text-blue-600" />}
-                          {profile.platform === 'GitHub' && <Github className="w-4 h-4 text-foreground" />}
+                        <div key={profile.id} className="contact-item">
+                          {profile.platform === 'LinkedIn' && <Linkedin className="contact-icon text-blue-600" />}
+                          {profile.platform === 'GitHub' && <Github className="contact-icon" />}
                           <div>
-                            <div className="font-medium">{profile.platform.toLowerCase()}</div>
-                            <div className="text-muted-foreground">{profile.platform}</div>
+                            <div className="font-medium text-xs">{profile.platform.toLowerCase()}</div>
+                            <div className="text-gray-600 text-xs">{profile.platform}</div>
                           </div>
                         </div>
                       ))}
@@ -863,98 +1234,79 @@ const ResumeBuilder: React.FC = () => {
 
                 {/* Skills */}
                 {resumeData.skills.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-bold mb-3 text-blue-700">Skills</h3>
+                  <div className="section">
+                    <h3 className="section-title-blue">Skills</h3>
                     <div className="space-y-3">
                       <div>
                         <h4 className="font-semibold text-sm">Web Technologies</h4>
-                        <p className="text-sm text-muted-foreground">Advanced</p>
-                        <p className="text-xs text-muted-foreground">{resumeData.skills.slice(0, 4).join(', ')}</p>
+                        <p className="text-sm text-gray-600">Advanced</p>
+                        <p className="text-xs text-gray-600">{resumeData.skills.slice(0, 4).join(', ')}</p>
                       </div>
                       {resumeData.skills.length > 4 && (
                         <div>
-                          <h4 className="font-semibold text-sm">Web Frameworks</h4>
-                          <p className="text-sm text-muted-foreground">Intermediate</p>
-                          <p className="text-xs text-muted-foreground">{resumeData.skills.slice(4).join(', ')}</p>
+                          <h4 className="font-semibold text-sm">Programming</h4>
+                          <p className="text-sm text-gray-600">Intermediate</p>
+                          <p className="text-xs text-gray-600">{resumeData.skills.slice(4).join(', ')}</p>
                         </div>
                       )}
                     </div>
                   </div>
                 )}
 
-                {/* Certifications */}
-                {resumeData.certifications.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-bold mb-3 text-blue-700">Certifications</h3>
-                    <div className="space-y-2">
-                      {resumeData.certifications.map((cert, index) => (
-                        <div key={index} className="text-sm">
-                          <div className="font-medium">{cert}</div>
-                          <div className="text-muted-foreground">2020</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 {/* Languages */}
                 {resumeData.languages.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-bold mb-3 text-blue-700">Languages</h3>
+                  <div className="section">
+                    <h3 className="section-title-blue">Languages</h3>
                     <div className="space-y-2">
                       {resumeData.languages.map((language, index) => (
                         <div key={language} className="text-sm">
                           <div className="font-medium">{language}</div>
-                          <div className="text-muted-foreground">{index === 0 ? 'Native Speaker' : 'Intermediate'}</div>
+                          <div className="text-gray-600 text-xs">
+                            {index === 0 ? 'Native Speaker' : 'Intermediate'}
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
-
-                {/* References */}
-                <div>
-                  <h3 className="text-lg font-bold mb-3 text-blue-700">References</h3>
-                  <p className="text-sm text-muted-foreground">Available upon request</p>
-                </div>
               </div>
 
               {/* Right Content */}
-              <div className="flex-1 space-y-6">
+              <div className="main-content space-y-6">
                 {/* Summary */}
                 {resumeData.summary && (
-                  <div>
-                    <h2 className="text-xl font-bold mb-3 text-blue-700">Summary</h2>
+                  <div className="section">
+                    <h2 className="section-title-blue">Summary</h2>
                     <p className="text-sm leading-relaxed">{resumeData.summary}</p>
                   </div>
                 )}
 
                 {/* Experience */}
                 {resumeData.experience.length > 0 && (
-                  <div>
-                    <h2 className="text-xl font-bold mb-4 text-blue-700">Experience</h2>
+                  <div className="section">
+                    <h2 className="section-title-blue">Experience</h2>
                     {resumeData.experience.map((exp) => (
-                      <div key={exp.id} className="mb-6 pb-4 border-l-4 border-blue-300 pl-4">
-                        <div className="flex justify-between items-start mb-2">
+                      <div key={exp.id} className="experience-item border-l-4 border-blue-300 pl-4">
+                        <div className="experience-header">
                           <div>
-                            <h3 className="font-bold text-lg">{exp.company || 'Creative Solutions Inc.'}</h3>
-                            <p className="text-blue-600 font-medium">{exp.role || 'Senior Web Developer'}</p>
-                            <p className="text-sm text-muted-foreground">{exp.link || 'https://creativesolutions.inc/'}</p>
+                            <div className="experience-company text-lg">
+                              {exp.company || 'Creative Solutions Inc.'}
+                            </div>
+                            <div className="text-blue-600 font-medium text-sm">
+                              {exp.role || 'Senior Web Developer'}
+                            </div>
                           </div>
-                          <div className="text-right text-sm">
+                          <div className="experience-date">
                             <div className="font-medium">
                               {exp.startDate ? new Date(exp.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'January 2019'} to {exp.current ? 'Present' : exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Present'}
                             </div>
-                            <div className="text-muted-foreground">{resumeData.location || 'San Francisco, CA'}</div>
+                            <div className="text-gray-600">{resumeData.location || 'San Francisco, CA'}</div>
                           </div>
                         </div>
                         {exp.bullets.filter(b => b.trim()).length > 0 && (
-                          <ul className="text-sm space-y-1 text-foreground/80">
+                          <ul className="bullet-list mt-2">
                             {exp.bullets.filter(b => b.trim()).map((bullet, index) => (
-                              <li key={index} className="flex items-start gap-2">
-                                <span className="text-blue-500 mt-1">→</span>
-                                <span>{bullet}</span>
-                              </li>
+                              <li key={index} className="bullet-item text-blue-500">{bullet}</li>
                             ))}
                           </ul>
                         )}
@@ -965,40 +1317,24 @@ const ResumeBuilder: React.FC = () => {
 
                 {/* Education */}
                 {resumeData.education.length > 0 && (
-                  <div>
-                    <h2 className="text-xl font-bold mb-4 text-blue-700">Education</h2>
+                  <div className="section">
+                    <h2 className="section-title-blue">Education</h2>
                     {resumeData.education.map((edu) => (
-                      <div key={edu.id} className="mb-4 pb-4 border-l-4 border-blue-300 pl-4">
+                      <div key={edu.id} className="mb-4 border-l-4 border-blue-300 pl-4">
                         <div className="flex justify-between items-start">
                           <div>
                             <h3 className="font-bold">{edu.institution || 'University of California'}</h3>
-                            <p className="text-foreground">{edu.degree || "Bachelor's in Computer Science"}</p>
+                            <p>{edu.degree || "Bachelor's in Computer Science"}</p>
                           </div>
                           <div className="text-right text-sm">
                             <div className="font-medium">
-                              {edu.graduationYear ? `${edu.graduationYear.includes('-') ? new Date(edu.graduationYear).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : edu.graduationYear}` : 'August 2012 to May 2016'}
+                              {edu.graduationYear || '2016'}
                             </div>
-                            <div className="text-muted-foreground">Berkeley, CA</div>
+                            <div className="text-gray-600">Berkeley, CA</div>
                           </div>
                         </div>
                       </div>
                     ))}
-                  </div>
-                )}
-
-                {/* Projects */}
-                {resumeData.projects.length > 0 && (
-                  <div>
-                    <h2 className="text-xl font-bold mb-4 text-blue-700">Projects</h2>
-                    <div className="grid grid-cols-2 gap-4">
-                      {resumeData.projects.map((project) => (
-                        <div key={project.id} className="border-l-4 border-blue-300 pl-4">
-                          <h3 className="font-bold">{project.title || 'E-Commerce Platform'}</h3>
-                          <p className="text-sm text-muted-foreground mb-1">{project.role || 'Project Lead'}</p>
-                          <p className="text-sm text-foreground/80">{project.description || 'Led the development of a full-stack e-commerce platform, improving sales conversion by 25%.'}</p>
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 )}
               </div>
@@ -1007,73 +1343,25 @@ const ResumeBuilder: React.FC = () => {
         )}
 
         {settings.template === 'photo-left' && (
-          <div className="min-h-full flex">
+          <div className="template-photo-left">
             {/* Left Photo Section */}
-            <div className="w-1/3 bg-muted">
+            <div className="photo-sidebar">
               {resumeData.picture && (
                 <img 
                   src={resumeData.picture} 
                   alt="Profile" 
-                  className="w-full h-80 object-cover"
+                  className="profile-image-full"
                 />
               )}
               
               <div className="p-6">
-                {/* Profiles */}
-                {resumeData.profiles.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-bold mb-3" style={{ color: settings.accentColor }}>Profiles</h3>
-                    <div className="space-y-2">
-                      {resumeData.profiles.map((profile) => (
-                        <div key={profile.id} className="flex items-center gap-2 text-sm">
-                          {profile.platform === 'LinkedIn' && <Linkedin className="w-4 h-4" style={{ color: settings.accentColor }} />}
-                          {profile.platform === 'GitHub' && <Github className="w-4 h-4" />}
-                          <div>
-                            <div className="font-medium">{profile.platform.toLowerCase()}</div>
-                            <div className="text-muted-foreground">{profile.platform}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 {/* Skills */}
                 {resumeData.skills.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-bold mb-3" style={{ color: settings.accentColor }}>Skills</h3>
-                    <div className="space-y-3">
-                      <div className="border-b border-orange-200 pb-2">
-                        <h4 className="font-semibold text-sm">Web Technologies</h4>
-                        <p className="text-sm text-muted-foreground">Advanced</p>
-                        <p className="text-xs text-muted-foreground">{resumeData.skills.slice(0, 4).join(', ')}</p>
-                      </div>
-                      {resumeData.skills.length > 4 && (
-                        <div className="border-b border-orange-200 pb-2">
-                          <h4 className="font-semibold text-sm">Web Frameworks</h4>
-                          <p className="text-sm text-muted-foreground">Intermediate</p>
-                          <p className="text-xs text-muted-foreground">{resumeData.skills.slice(4).join(', ')}</p>
-                        </div>
-                      )}
-                      <div className="border-b border-orange-200 pb-2">
-                        <h4 className="font-semibold text-sm">Tools</h4>
-                        <p className="text-sm text-muted-foreground">Intermediate</p>
-                        <p className="text-xs text-muted-foreground">Webpack, Git, Jenkins, Docker, JIRA</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Certifications */}
-                {resumeData.certifications.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-bold mb-3" style={{ color: settings.accentColor }}>Certifications</h3>
-                    <div className="space-y-2">
-                      {resumeData.certifications.map((cert, index) => (
-                        <div key={index} className="text-sm">
-                          <div className="font-medium">{cert}</div>
-                          <div className="text-muted-foreground">2020</div>
-                        </div>
+                  <div className="section">
+                    <h3 className="section-title-accent">Skills</h3>
+                    <div className="skills-grid">
+                      {resumeData.skills.map((skill) => (
+                        <span key={skill} className="skill-tag">{skill}</span>
                       ))}
                     </div>
                   </div>
@@ -1081,96 +1369,96 @@ const ResumeBuilder: React.FC = () => {
 
                 {/* Languages */}
                 {resumeData.languages.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-bold mb-3" style={{ color: settings.accentColor }}>Languages</h3>
+                  <div className="section">
+                    <h3 className="section-title-accent">Languages</h3>
                     <div className="space-y-2">
                       {resumeData.languages.map((language, index) => (
                         <div key={language} className="text-sm">
                           <div className="font-medium">{language}</div>
-                          <div className="text-muted-foreground">{index === 0 ? 'Native Speaker' : 'Intermediate'}</div>
+                          <div className="text-gray-600 text-xs">
+                            {index === 0 ? 'Native Speaker' : 'Intermediate'}
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
-
-                {/* References */}
-                <div>
-                  <h3 className="text-lg font-bold mb-3" style={{ color: settings.accentColor }}>References</h3>
-                  <p className="text-sm text-muted-foreground">Available upon request</p>
-                </div>
               </div>
             </div>
 
             {/* Right Content */}
-            <div className="flex-1">
+            <div className="main-wrapper">
               {/* Colored Header */}
-              <div className="text-white p-8" style={{ backgroundColor: settings.accentColor }}>
-                <h1 className="text-4xl font-bold mb-2">{resumeData.fullName || 'John Doe'}</h1>
-                <p className="text-xl mb-4 opacity-90">{resumeData.headline || 'Creative and Innovative Web Developer'}</p>
-                <div className="flex flex-wrap gap-4 text-sm opacity-90">
+              <div className="colored-header">
+                <h1 className="text-4xl font-bold mb-2 text-white">
+                  {resumeData.fullName || 'John Doe'}
+                </h1>
+                <p className="text-xl mb-4 text-white/90">
+                  {resumeData.headline || 'Creative and Innovative Web Developer'}
+                </p>
+                <div className="flex flex-wrap gap-4 text-sm text-white/80">
                   {resumeData.location && (
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
+                    <div className="contact-item">
+                      <MapPin className="contact-icon" />
                       <span>{resumeData.location}</span>
                     </div>
                   )}
                   {resumeData.phone && (
-                    <div className="flex items-center gap-1">
-                      <Phone className="w-4 h-4" />
+                    <div className="contact-item">
+                      <Phone className="contact-icon" />
                       <span>{resumeData.phone}</span>
                     </div>
                   )}
                   {resumeData.email && (
-                    <div className="flex items-center gap-1">
-                      <Mail className="w-4 h-4" />
+                    <div className="contact-item">
+                      <Mail className="contact-icon" />
                       <span>{resumeData.email}</span>
                     </div>
                   )}
                   {resumeData.website && (
-                    <div className="flex items-center gap-1">
-                      <Globe className="w-4 h-4" />
+                    <div className="contact-item">
+                      <Globe className="contact-icon" />
                       <span>{resumeData.website}</span>
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="p-8 space-y-6">
+              <div className="main-content space-y-6">
                 {/* Summary */}
                 {resumeData.summary && (
-                  <div>
-                    <h2 className="text-xl font-bold mb-3 border-b-2 pb-1" style={{ borderColor: settings.accentColor, color: settings.accentColor }}>Summary</h2>
+                  <div className="section">
+                    <h2 className="section-title-accent">Summary</h2>
                     <p className="text-sm leading-relaxed">{resumeData.summary}</p>
                   </div>
                 )}
 
                 {/* Experience */}
                 {resumeData.experience.length > 0 && (
-                  <div>
-                    <h2 className="text-xl font-bold mb-4 border-b-2 pb-1" style={{ borderColor: settings.accentColor, color: settings.accentColor }}>Experience</h2>
+                  <div className="section">
+                    <h2 className="section-title-accent">Experience</h2>
                     {resumeData.experience.map((exp) => (
-                      <div key={exp.id} className="mb-6 pb-4">
-                        <div className="flex justify-between items-start mb-2">
+                      <div key={exp.id} className="experience-item">
+                        <div className="experience-header">
                           <div>
-                            <h3 className="font-bold text-lg">{exp.company || 'Creative Solutions Inc.'}</h3>
-                            <p className="font-medium" style={{ color: settings.accentColor }}>{exp.role || 'Senior Web Developer'}</p>
-                            <p className="text-sm text-muted-foreground">{exp.link || 'https://creativesolutions.inc/'}</p>
+                            <div className="experience-company text-lg">
+                              {exp.company || 'Creative Solutions Inc.'}
+                            </div>
+                            <div className="font-medium text-sm" style={{ color: settings.accentColor }}>
+                              {exp.role || 'Senior Web Developer'}
+                            </div>
                           </div>
-                          <div className="text-right text-sm">
+                          <div className="experience-date">
                             <div className="font-medium">
                               {exp.startDate ? new Date(exp.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'January 2019'} to {exp.current ? 'Present' : exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Present'}
                             </div>
-                            <div className="text-muted-foreground">{resumeData.location || 'San Francisco, CA'}</div>
+                            <div className="text-gray-600">{resumeData.location || 'San Francisco, CA'}</div>
                           </div>
                         </div>
                         {exp.bullets.filter(b => b.trim()).length > 0 && (
-                          <ul className="text-sm space-y-1 text-foreground/80">
+                          <ul className="bullet-list mt-2">
                             {exp.bullets.filter(b => b.trim()).map((bullet, index) => (
-                              <li key={index} className="flex items-start gap-2">
-                                <span style={{ color: settings.accentColor }} className="mt-1">→</span>
-                                <span>{bullet}</span>
-                              </li>
+                              <li key={index} className="bullet-item">{bullet}</li>
                             ))}
                           </ul>
                         )}
@@ -1181,36 +1469,22 @@ const ResumeBuilder: React.FC = () => {
 
                 {/* Education */}
                 {resumeData.education.length > 0 && (
-                  <div>
-                    <h2 className="text-xl font-bold mb-4 border-b-2 pb-1" style={{ borderColor: settings.accentColor, color: settings.accentColor }}>Education</h2>
+                  <div className="section">
+                    <h2 className="section-title-accent">Education</h2>
                     {resumeData.education.map((edu) => (
-                      <div key={edu.id} className="mb-4 pb-4">
+                      <div key={edu.id} className="mb-4">
                         <div className="flex justify-between items-start">
                           <div>
                             <h3 className="font-bold">{edu.institution || 'University of California'}</h3>
-                            <p className="text-foreground">{edu.degree || "Bachelor's in Computer Science"}</p>
+                            <p>{edu.degree || "Bachelor's in Computer Science"}</p>
                           </div>
                           <div className="text-right text-sm">
                             <div className="font-medium">
-                              {edu.graduationYear ? `${edu.graduationYear.includes('-') ? new Date(edu.graduationYear).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : edu.graduationYear}` : 'August 2012 to May 2016'}
+                              {edu.graduationYear || '2016'}
                             </div>
-                            <div className="text-muted-foreground">Berkeley, CA</div>
+                            <div className="text-gray-600">Berkeley, CA</div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Projects */}
-                {resumeData.projects.length > 0 && (
-                  <div>
-                    <h2 className="text-xl font-bold mb-4 border-b-2 pb-1" style={{ borderColor: settings.accentColor, color: settings.accentColor }}>Projects</h2>
-                    {resumeData.projects.map((project) => (
-                      <div key={project.id} className="mb-4">
-                        <h3 className="font-bold">{project.title || 'E-Commerce Platform'}</h3>
-                        <p className="text-sm text-muted-foreground mb-1">{project.role || 'Project Lead'}</p>
-                        <p className="text-sm text-foreground/80">{project.description || 'Led the development of a full-stack e-commerce platform, improving sales conversion by 25%.'}</p>
                       </div>
                     ))}
                   </div>
@@ -1308,7 +1582,7 @@ const ResumeBuilder: React.FC = () => {
                       <option value="Arial">Arial</option>
                       <option value="Georgia">Georgia</option>
                       <option value="Inter">Inter</option>
-                      <option value="Roboto Slab">Roboto Slab</option>
+                      <option value="Roboto">Roboto</option>
                     </Select>
                   </div>
                 </div>
@@ -1327,7 +1601,7 @@ const ResumeBuilder: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium mb-2">Picture URL</label>
                   <Input
-                    placeholder="https://lh3.googleusercontent.com/a/ACg8ocI8NFOsWNf4SLxz0RhUvc396v2S_00ky98azXTQ7zd-7a_wlA=s96-c"
+                    placeholder="https://example.com/photo.jpg"
                     value={resumeData.picture}
                     onChange={(e) => setResumeData(prev => ({ ...prev, picture: e.target.value }))}
                   />
@@ -1344,7 +1618,7 @@ const ResumeBuilder: React.FC = () => {
                   <div>
                     <label className="block text-sm font-medium mb-2">Headline</label>
                     <Input
-                      placeholder="Developer"
+                      placeholder="Professional Title"
                       value={resumeData.headline}
                       onChange={(e) => setResumeData(prev => ({ ...prev, headline: e.target.value }))}
                     />
@@ -1355,7 +1629,7 @@ const ResumeBuilder: React.FC = () => {
                     <label className="block text-sm font-medium mb-2">Email</label>
                     <Input
                       type="email"
-                      placeholder="beddylea@gmail.com"
+                      placeholder="email@example.com"
                       value={resumeData.email}
                       onChange={(e) => setResumeData(prev => ({ ...prev, email: e.target.value }))}
                     />
@@ -1366,6 +1640,7 @@ const ResumeBuilder: React.FC = () => {
                       placeholder="https://example.com"
                       value={resumeData.website}
                       onChange={(e) => setResumeData(prev => ({ ...prev, website: e.target.value }))}
+                      error={validateUrl(resumeData.website) || undefined}
                     />
                   </div>
                 </div>
@@ -1387,6 +1662,67 @@ const ResumeBuilder: React.FC = () => {
                     />
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Profiles Section */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <Globe className="w-5 h-5" />
+                  Profiles
+                </h2>
+                <Button onClick={addProfile} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Profile
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {resumeData.profiles.map((profile, index) => (
+                  <div key={profile.id} className="border border-border rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-4">
+                      <h3 className="font-medium">Profile {index + 1}</h3>
+                      <Button onClick={() => removeProfile(profile.id)} size="sm" variant="destructive">
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Platform</label>
+                        <Select
+                          value={profile.platform}
+                          onValueChange={(value) => updateProfile(profile.id, 'platform', value)}
+                        >
+                          <option value="LinkedIn">LinkedIn</option>
+                          <option value="GitHub">GitHub</option>
+                          <option value="Website">Website</option>
+                          <option value="Other">Other</option>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Label</label>
+                        <Input
+                          placeholder="Display text"
+                          value={profile.label}
+                          onChange={(e) => updateProfile(profile.id, 'label', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium mb-2">URL</label>
+                      <Input
+                        placeholder={
+                          profile.platform === 'LinkedIn' ? 'https://linkedin.com/in/username' :
+                          profile.platform === 'GitHub' ? 'https://github.com/username' :
+                          'https://example.com'
+                        }
+                        value={profile.url || ''}
+                        onChange={(e) => updateProfile(profile.id, 'url', e.target.value)}
+                        error={errors[`profile_${profile.id}_url`]}
+                      />
+                    </div>
+                  </div>
+                ))}
               </CardContent>
             </Card>
 
@@ -1789,7 +2125,7 @@ const ResumeBuilder: React.FC = () => {
                 <h2 className="text-lg font-semibold">Live Preview</h2>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="border border-border rounded-lg overflow-hidden" style={{ minHeight: '800px' }}>
+                <div className="border border-border rounded-lg overflow-hidden bg-white" style={{ minHeight: '800px' }}>
                   {renderResumePreview()}
                 </div>
               </CardContent>
@@ -1818,7 +2154,7 @@ const ResumeBuilder: React.FC = () => {
         </div>
       )}
 
-      {/* Print Styles */}
+      {/* Enhanced Print Styles */}
       <style>{`
         @media print {
           body * {
@@ -1832,15 +2168,28 @@ const ResumeBuilder: React.FC = () => {
             left: 0;
             top: 0;
             width: 100%;
+            transform: scale(1);
           }
-          .template-classic {
+          .template-classic,
+          .template-blue,
+          .template-photo-left {
+            page-break-inside: avoid;
+          }
+          .experience-item,
+          .section {
+            page-break-inside: avoid;
             break-inside: avoid;
           }
-          .template-classic .mb-4,
-          .template-blue .mb-6,
-          .template-photo-left .mb-4 {
-            break-inside: avoid;
-          }
+        }
+        
+        .space-y-2 > * + * {
+          margin-top: 0.5rem;
+        }
+        .space-y-3 > * + * {
+          margin-top: 0.75rem;
+        }
+        .space-y-6 > * + * {
+          margin-top: 1.5rem;
         }
       `}</style>
     </div>

@@ -115,86 +115,255 @@ type AnalysisHistory = {
 
 // Enhanced predefined roles with more details
 const PREDEFINED_ROLES: Role[] = [
-  {
-    id: 'frontend',
-    title: 'Frontend Developer',
-    keywords: ['React', 'JavaScript', 'TypeScript', 'HTML', 'CSS', 'Next.js', 'Tailwind', 'Accessibility', 'Performance', 'GraphQL', 'REST', 'Vue', 'Angular', 'Webpack', 'Sass', 'Redux', 'Jest', 'Cypress'],
-    category: 'Development',
-    level: 'mid',
-    description: 'Builds user-facing web applications with modern frameworks',
-    requiredSections: ['experience', 'skills', 'contact'],
-    weightings: { keywords: 0.4, experience: 0.3, education: 0.1, skills: 0.2 }
-  },
-  {
-    id: 'backend',
-    title: 'Backend Developer',
-    keywords: ['Node.js', 'Python', 'Java', 'REST', 'GraphQL', 'SQL', 'PostgreSQL', 'MongoDB', 'Docker', 'Kubernetes', 'Express', 'FastAPI', 'Spring', 'Microservices', 'Redis', 'AWS', 'API Design', 'Database Design'],
-    category: 'Development',
-    level: 'mid',
-    description: 'Develops server-side applications and APIs',
-    requiredSections: ['experience', 'skills', 'contact'],
-    weightings: { keywords: 0.4, experience: 0.3, education: 0.1, skills: 0.2 }
-  },
-  {
-    id: 'fullstack',
-    title: 'Full Stack Developer',
-    keywords: ['React', 'Node.js', 'TypeScript', 'SQL', 'Docker', 'AWS', 'CI/CD', 'GraphQL', 'Python', 'JavaScript', 'MongoDB', 'PostgreSQL', 'Express', 'Next.js', 'API Development', 'System Design'],
-    category: 'Development',
-    level: 'mid',
-    description: 'Works on both frontend and backend technologies',
-    requiredSections: ['experience', 'skills', 'contact'],
-    weightings: { keywords: 0.35, experience: 0.35, education: 0.1, skills: 0.2 }
-  },
-  {
-    id: 'data-scientist',
-    title: 'Data Scientist',
-    keywords: ['Python', 'Pandas', 'NumPy', 'Machine Learning', 'TensorFlow', 'PyTorch', 'SQL', 'Feature Engineering', 'Scikit-learn', 'Statistics', 'R', 'Jupyter', 'Data Visualization', 'A/B Testing', 'Deep Learning'],
-    category: 'Data',
-    level: 'mid',
-    description: 'Analyzes data to extract insights and build predictive models',
-    requiredSections: ['experience', 'skills', 'education', 'contact'],
-    weightings: { keywords: 0.3, experience: 0.3, education: 0.2, skills: 0.2 }
-  },
-  {
-    id: 'devops',
-    title: 'DevOps Engineer',
-    keywords: ['Docker', 'Kubernetes', 'Terraform', 'CI/CD', 'AWS', 'Monitoring', 'Ansible', 'Jenkins', 'Git', 'Linux', 'Cloud', 'Infrastructure', 'Prometheus', 'Grafana', 'Helm', 'GitLab', 'Security'],
-    category: 'Operations',
-    level: 'mid',
-    description: 'Manages infrastructure and deployment pipelines',
-    requiredSections: ['experience', 'skills', 'contact'],
-    weightings: { keywords: 0.4, experience: 0.3, education: 0.1, skills: 0.2 }
-  },
-  {
-    id: 'mobile',
-    title: 'Mobile Developer',
-    keywords: ['React Native', 'Flutter', 'Swift', 'Kotlin', 'iOS', 'Android', 'Performance', 'Store', 'UI/UX', 'Firebase', 'Push Notifications', 'App Store', 'Play Store', 'Mobile Architecture'],
-    category: 'Development',
-    level: 'mid',
-    description: 'Develops mobile applications for iOS and Android',
-    requiredSections: ['experience', 'skills', 'contact'],
-    weightings: { keywords: 0.4, experience: 0.3, education: 0.1, skills: 0.2 }
-  },
-  {
-    id: 'product-manager',
-    title: 'Product Manager',
-    keywords: ['Product Strategy', 'Roadmap', 'A/B Testing', 'User Research', 'Analytics', 'SQL', 'Agile', 'Scrum', 'Stakeholder Management', 'KPI', 'User Stories', 'Market Research', 'Competitive Analysis'],
-    category: 'Management',
-    level: 'senior',
-    description: 'Defines product strategy and manages product lifecycle',
-    requiredSections: ['experience', 'skills', 'contact', 'education'],
-    weightings: { keywords: 0.25, experience: 0.4, education: 0.15, skills: 0.2 }
-  },
-  {
-    id: 'ui-ux-designer',
-    title: 'UI/UX Designer',
-    keywords: ['Figma', 'User Research', 'Prototyping', 'Design Systems', 'Accessibility', 'Wireframes', 'User Testing', 'Adobe', 'Sketch', 'InVision', 'Information Architecture', 'Usability Testing'],
-    category: 'Design',
-    level: 'mid',
-    description: 'Designs user interfaces and experiences',
-    requiredSections: ['experience', 'skills', 'contact'],
-    weightings: { keywords: 0.3, experience: 0.35, education: 0.15, skills: 0.2 }
-  }
+  // Add these Role objects to your PREDEFINED_ROLES array
+{
+  id: 'artificial-intelligence-engineer',
+  title: 'Artificial Intelligence Engineer',
+  keywords: [
+    'PyTorch', 'TensorFlow', 'Transformers', 'LLMs', 'Prompt Engineering',
+    'RAG', 'Vector DBs', 'FAISS', 'Pinecone', 'Weaviate', 'MLflow', 'DVC',
+    'Model Evaluation', 'NLP', 'Computer Vision', 'CUDA', 'ONNX', 'Docker',
+    'Kubernetes', 'AWS SageMaker', 'Vertex AI', 'Azure ML'
+  ],
+  category: 'AI / Data',
+  level: 'senior',
+  description: 'Designs, trains, evaluates and productionises AI/LLM systems (NLP, CV and multimodal), including RAG/LLMOps.',
+  requiredSections: ['experience', 'skills', 'education', 'projects', 'contact'],
+  weightings: { keywords: 0.3, experience: 0.35, education: 0.15, skills: 0.2 }
+},
+{
+  id: 'machine-learning-engineer',
+  title: 'Machine Learning Engineer',
+  keywords: [
+    'Python', 'scikit-learn', 'PyTorch', 'TensorFlow', 'MLflow', 'Kubeflow',
+    'Docker', 'Kubernetes', 'Feature Engineering', 'MLOps', 'Data Pipelines',
+    'AWS', 'GCP', 'Azure', 'Model Serving', 'Monitoring', 'CI/CD', 'SQL'
+  ],
+  category: 'Data',
+  level: 'mid',
+  description: 'Builds, deploys and maintains ML models in production with MLOps practices and scalable pipelines.',
+  requiredSections: ['experience', 'skills', 'projects', 'contact'],
+  weightings: { keywords: 0.32, experience: 0.33, education: 0.15, skills: 0.2 }
+},
+{
+  id: 'big-data-engineer',
+  title: 'Big Data Engineer',
+  keywords: [
+    'Apache Spark', 'Kafka', 'Flink', 'Hadoop', 'Airflow', 'dbt', 'ETL/ELT',
+    'Snowflake', 'BigQuery', 'Redshift', 'Delta Lake', 'Parquet', 'Spark SQL',
+    'Data Modeling', 'Schema Design', 'Streaming', 'Cloud Data Warehouses'
+  ],
+  category: 'Data',
+  level: 'mid',
+  description: 'Designs and implements large-scale data pipelines, streaming systems and data warehouses.',
+  requiredSections: ['experience', 'skills', 'projects', 'contact'],
+  weightings: { keywords: 0.33, experience: 0.33, education: 0.14, skills: 0.2 }
+},
+{
+  id: 'blockchain-developer',
+  title: 'Blockchain Developer (dApp / Smart Contracts)',
+  keywords: [
+    'Solidity', 'Hardhat', 'Truffle', 'Web3.js', 'Ethers.js', 'Ganache', 'Remix',
+    'Smart Contracts', 'OpenZeppelin', 'IPFS', 'Metamask', 'Solana', 'Rust',
+    'Anchor', 'Smart Contract Auditing', 'Gas Optimization', 'Token Standards'
+  ],
+  category: 'Blockchain',
+  level: 'mid',
+  description: 'Builds decentralized applications, writes & audits smart contracts and integrates on-chain/off-chain systems.',
+  requiredSections: ['experience', 'skills', 'projects', 'contact'],
+  weightings: { keywords: 0.36, experience: 0.34, education: 0.1, skills: 0.2 }
+},
+{
+  id: 'blockchain-engineer',
+  title: 'Blockchain Engineer (Protocol / Infrastructure)',
+  keywords: [
+    'Consensus Algorithms', 'Rust', 'Golang', 'Node Operators', 'P2P',
+    'Distributed Systems', 'Cryptography', 'Smart Contract Tooling', 'Layer-2',
+    'Substrate', 'Solana', 'Ethereum', 'On-chain Governance', 'Scaling',
+    'Monitoring', 'Performance Tuning'
+  ],
+  category: 'Blockchain',
+  level: 'senior',
+  description: 'Designs and implements blockchain protocols, node infrastructure and scaling solutions at the protocol layer.',
+  requiredSections: ['experience', 'skills', 'projects', 'contact'],
+  weightings: { keywords: 0.34, experience: 0.36, education: 0.1, skills: 0.2 }
+},
+{
+  id: 'cloud-architect',
+  title: 'Cloud Architect',
+  keywords: [
+    'AWS', 'Azure', 'GCP', 'Cloud Architecture', 'Microservices', 'IaC',
+    'Terraform', 'Cloud Networking', 'Security', 'Cost Optimisation', 'Containers',
+    'Kubernetes', 'Design Patterns', 'Load Balancing', 'High Availability'
+  ],
+  category: 'Cloud',
+  level: 'senior',
+  description: 'Designs cloud solutions and migration strategies; sets patterns for security, cost, scalability and reliability.',
+  requiredSections: ['experience', 'skills', 'education', 'contact'],
+  weightings: { keywords: 0.28, experience: 0.4, education: 0.12, skills: 0.2 }
+},
+{
+  id: 'cloud-engineer',
+  title: 'Cloud Engineer',
+  keywords: [
+    'AWS', 'Azure', 'GCP', 'Terraform', 'CloudFormation', 'Kubernetes', 'Docker',
+    'CI/CD', 'Networking', 'IAM', 'Monitoring', 'Cost Management', 'Linux'
+  ],
+  category: 'Cloud',
+  level: 'mid',
+  description: 'Implements and operates cloud infrastructure, IaC and automation for services and platforms.',
+  requiredSections: ['experience', 'skills', 'contact'],
+  weightings: { keywords: 0.36, experience: 0.32, education: 0.12, skills: 0.2 }
+},
+{
+  id: 'cloud-computing',
+  title: 'Cloud Computing Specialist',
+  keywords: [
+    'IaaS', 'PaaS', 'SaaS', 'AWS', 'Azure', 'GCP', 'Serverless', 'Containers',
+    'Kubernetes', 'Networking', 'Security', 'Identity Management'
+  ],
+  category: 'Cloud',
+  level: 'mid',
+  description: 'General cloud skillset covering service models, deployment models and cloud-native patterns.',
+  requiredSections: ['experience', 'skills', 'contact'],
+  weightings: { keywords: 0.34, experience: 0.34, education: 0.12, skills: 0.2 }
+},
+{
+  id: 'software-developer',
+  title: 'Software Developer',
+  keywords: [
+    'Python', 'Java', 'C#', 'Go', 'C++', 'Git', 'Unit Testing', 'CI/CD',
+    'REST', 'API Design', 'Databases', 'Agile', 'TDD', 'Debugging', 'Design Patterns'
+  ],
+  category: 'Development',
+  level: 'mid',
+  description: 'Builds backend/frontend systems, writes tests, and follows software engineering best practices.',
+  requiredSections: ['experience', 'skills', 'contact'],
+  weightings: { keywords: 0.34, experience: 0.34, education: 0.12, skills: 0.2 }
+},
+{
+  id: 'software-architect',
+  title: 'Software Architect',
+  keywords: [
+    'System Design', 'Microservices', 'Domain-Driven Design', 'Scalability',
+    'Event-Driven Architecture', 'Cloud', 'API Design', 'Security', 'Observability',
+    'Caching', 'Databases', 'Load Balancing', 'Messaging Systems'
+  ],
+  category: 'Architecture',
+  level: 'senior',
+  description: 'Defines high-level system architecture, patterns and non-functional requirements across products.',
+  requiredSections: ['experience', 'skills', 'education', 'contact'],
+  weightings: { keywords: 0.26, experience: 0.44, education: 0.1, skills: 0.2 }
+},
+{
+  id: 'iot-solutions-architect',
+  title: 'IoT Solutions Architect',
+  keywords: [
+    'Edge Computing', 'MQTT', 'CoAP', 'IoT Security', 'Embedded C', 'Microcontrollers',
+    'AWS IoT', 'Azure IoT Hub', 'GCP IoT', 'MQTT Brokers', 'Data Ingestion',
+    'Device Management', 'Digital Twins', 'Connectivity', 'Sensors'
+  ],
+  category: 'IoT / Embedded',
+  level: 'senior',
+  description: 'Designs end-to-end IoT systems: edge devices, connectivity, ingestion, cloud processing and device management.',
+  requiredSections: ['experience', 'skills', 'projects', 'contact'],
+  weightings: { keywords: 0.3, experience: 0.4, education: 0.1, skills: 0.2 }
+},
+{
+  id: 'data-architect',
+  title: 'Data Architect',
+  keywords: [
+    'Data Modeling', 'Star Schema', 'Snowflake Schema', 'Data Warehouse', 'ETL/ELT',
+    'Snowflake', 'BigQuery', 'Redshift', 'dbt', 'Data Governance', 'Master Data Management',
+    'Metadata', 'Data Lake', 'SQL', 'Performance Tuning'
+  ],
+  category: 'Data',
+  level: 'senior',
+  description: 'Defines enterprise data models, governance, storage patterns and the analytics stack for reliable analytics and reporting.',
+  requiredSections: ['experience', 'skills', 'education', 'contact'],
+  weightings: { keywords: 0.28, experience: 0.4, education: 0.12, skills: 0.2 }
+},
+{
+  id: 'information-security',
+  title: 'Information Security Specialist',
+  keywords: [
+    'ISO 27001', 'Risk Management', 'SOC 2', 'Compliance', 'Vulnerability Management',
+    'Penetration Testing', 'SIEM', 'Cloud Security', 'IAM', 'Encryption', 'TLS', 'Policies'
+  ],
+  category: 'Security',
+  level: 'senior',
+  description: 'Manages organisation-wide information security, policy, compliance and risk frameworks.',
+  requiredSections: ['experience', 'skills', 'education', 'contact'],
+  weightings: { keywords: 0.27, experience: 0.43, education: 0.1, skills: 0.2 }
+},
+{
+  id: 'cybersecurity',
+  title: 'Cybersecurity Analyst',
+  keywords: [
+    'SIEM', 'Splunk', 'Elastic', 'Threat Hunting', 'IDS/IPS', 'Network Security',
+    'Incident Response', 'Forensics', 'Penetration Testing', 'MITRE ATT&CK', 'SOC',
+    'Endpoint Protection'
+  ],
+  category: 'Security',
+  level: 'mid',
+  description: 'Detects and responds to threats, runs SOC operations and performs security monitoring and analysis.',
+  requiredSections: ['experience', 'skills', 'contact'],
+  weightings: { keywords: 0.34, experience: 0.34, education: 0.12, skills: 0.2 }
+},
+{
+  id: 'cybersecurity-engineer',
+  title: 'Cybersecurity Engineer',
+  keywords: [
+    'AppSec', 'SAST', 'DAST', 'Secure SDLC', 'WAF', 'IAM', 'Cloud Security',
+    'Network Hardening', 'Penetration Testing', 'DevSecOps', 'Threat Modeling'
+  ],
+  category: 'Security',
+  level: 'senior',
+  description: 'Builds secure systems, integrates security into CI/CD and implements defensive controls at scale.',
+  requiredSections: ['experience', 'skills', 'projects', 'contact'],
+  weightings: { keywords: 0.32, experience: 0.38, education: 0.1, skills: 0.2 }
+},
+{
+  id: 'reliability-engineer',
+  title: 'Reliability Engineer (SRE)',
+  keywords: [
+    'SLO', 'SLI', 'SLA', 'Prometheus', 'Grafana', 'Datadog', 'PagerDuty',
+    'Chaos Engineering', 'Incident Management', 'Observability', 'Kubernetes',
+    'Automation', 'Runbooks', 'Capacity Planning'
+  ],
+  category: 'Operations',
+  level: 'mid',
+  description: 'Ensures availability and operability of systems using SRE practices: alerts, runbooks, SLIs/SLOs and automation.',
+  requiredSections: ['experience', 'skills', 'contact'],
+  weightings: { keywords: 0.35, experience: 0.35, education: 0.1, skills: 0.2 }
+},
+{
+  id: 'project-manager',
+  title: 'Project Manager',
+  keywords: [
+    'Agile', 'Scrum', 'Kanban', 'JIRA', 'Stakeholder Management', 'Risk Management',
+    'Gantt', 'Roadmaps', 'Budgeting', 'Communication', 'Reporting', 'MS Project'
+  ],
+  category: 'Management',
+  level: 'mid',
+  description: 'Plans and coordinates projects, manages stakeholders and ensures delivery on scope, time and budget.',
+  requiredSections: ['experience', 'skills', 'contact', 'education'],
+  weightings: { keywords: 0.2, experience: 0.45, education: 0.15, skills: 0.2 }
+},
+{
+  id: 'web-developer',
+  title: 'Web Developer',
+  keywords: [
+    'HTML', 'CSS', 'JavaScript', 'Responsive Design', 'Accessibility', 'React',
+    'Vue', 'Svelte', 'Next.js', 'Node.js', 'REST', 'GraphQL', 'Webpack', 'Vite',
+    'Performance', 'SEO'
+  ],
+  category: 'Development',
+  level: 'mid',
+  description: 'Builds and maintains websites and web apps focusing on frontend stack, accessibility and performance.',
+  requiredSections: ['experience', 'skills', 'contact'],
+  weightings: { keywords: 0.36, experience: 0.32, education: 0.12, skills: 0.2 }
+}
 ];
 
 // Enhanced utility functions

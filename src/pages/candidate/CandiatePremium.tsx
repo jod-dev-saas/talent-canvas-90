@@ -162,7 +162,7 @@ export default function CandidatePremium() {
 
   return (
     <div className="min-h-screen bg-background">
-      <CandidateHeader/>
+      <CandidateHeader />
       <main className="pt-16">
         {/* Hero Section */}
         <section className="py-20 px-4">
@@ -176,7 +176,7 @@ export default function CandidatePremium() {
                 Accelerate Your Career
               </h1>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-                Choose the plan that fits your career goals. Get premium features, 
+                Choose the plan that fits your career goals. Get premium features,
                 priority visibility, and dedicated support to land your dream job faster.
               </p>
             </motion.div>
@@ -198,11 +198,10 @@ export default function CandidatePremium() {
                     viewport={{ once: true }}
                     className="relative"
                   >
-                    <Card className={`h-full transition-all duration-300 hover:shadow-lg ${
-                      tier.popular 
-                        ? 'border-primary shadow-md scale-105 lg:scale-110' 
-                        : 'hover:border-primary/50'
-                    }`}>
+                    <Card className={`h-full transition-all duration-300 hover:shadow-lg ${tier.popular
+                      ? 'border-primary shadow-md scale-105 lg:scale-110'
+                      : 'hover:border-primary/50'
+                      }`}>
                       {tier.popular && (
                         <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                           <Badge className="bg-primary text-primary-foreground px-4 py-1">
@@ -212,11 +211,10 @@ export default function CandidatePremium() {
                       )}
 
                       <CardHeader className="text-center pb-8">
-                        <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center ${
-                          tier.popular 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'bg-primary/10 text-primary'
-                        }`}>
+                        <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center ${tier.popular
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-primary/10 text-primary'
+                          }`}>
                           <Icon className="h-8 w-8" />
                         </div>
                         <CardTitle className="text-2xl mb-2">{tier.name}</CardTitle>
@@ -241,7 +239,7 @@ export default function CandidatePremium() {
                           ))}
                         </div>
 
-                        <Button 
+                        <Button
                           className="w-full"
                           variant={tier.ctaVariant}
                           size="lg"
@@ -297,7 +295,7 @@ export default function CandidatePremium() {
                   answer: "We accept all major credit cards, PayPal, and bank transfers for Enterprise customers."
                 },
                 {
-                  question: "Do you offer refunds?", 
+                  question: "Do you offer refunds?",
                   answer: "We offer a 30-day money-back guarantee if you're not satisfied with your premium experience."
                 }
               ].map((faq, index) => (
@@ -334,16 +332,17 @@ export default function CandidatePremium() {
               </h2>
               <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
                 Join thousands of professionals who have accelerated their careers with TalentCanvas Premium.
-              </p>
+              </p> 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg">
-                  Start Free Trial
+                <Button
+                  size="lg"
+                  onClick={() => (window.location.href = "/candidate/profile")}
+                >
+                  Start Free
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-                <Button size="lg" variant="outline" onClick={() => handleContactSales('enterprise')}>
-                  Talk to Sales
-                </Button>
               </div>
+
             </motion.div>
           </div>
         </section>
@@ -355,7 +354,7 @@ export default function CandidatePremium() {
           <DialogHeader>
             <DialogTitle>Contact Our Sales Team</DialogTitle>
           </DialogHeader>
-          
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
