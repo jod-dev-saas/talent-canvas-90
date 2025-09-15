@@ -435,6 +435,47 @@ const ResumeBuilder: React.FC = () => {
     alert('Draft cleared successfully!');
   };
 
+  // Shared CSS used for both live preview and PDF
+  const getPreviewCSS = (s: ResumeSettings) => `
+    .resume-preview { min-width: 6.5in; min-height: 11in; margin: 0 auto; background: white; font-size: 11px; line-height: 1.4; }
+    .template-classic { display: flex; min-height: 11in; }
+    .template-classic .sidebar { width: 2.8in; background-color: #f8fafc; padding: 1.2rem; border-right: 1px solid #e2e8f0; }
+    .template-classic .main-content { flex: 1; padding: 1.2rem; background: white; }
+    .template-blue .blue-header { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem; }
+    .template-blue .content-wrapper { display: flex; gap: 2rem; padding: 1.5rem; }
+    .template-blue .left-sidebar { width: 2.5in; }
+    .template-blue .main-content { flex: 1; }
+    .template-photo-left { display: flex; min-height: 11in; }
+    .template-photo-left .photo-sidebar { width: 2.8in; background-color: #f1f5f9; }
+    .template-photo-left .main-wrapper { flex: 1; }
+    .template-photo-left .colored-header { background: ${s.accentColor}; color: white; padding: 1.5rem; }
+    .template-photo-left .main-content { padding: 1.5rem; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 0.5rem; line-height: 1.2; }
+    h2 { font-size: 16px; font-weight: 700; margin-bottom: 0.75rem; line-height: 1.3; }
+    h3 { font-size: 14px; font-weight: 600; margin-bottom: 0.5rem; line-height: 1.3; }
+    h4 { font-size: 12px; font-weight: 600; margin-bottom: 0.25rem; }
+    p { margin-bottom: 0.5rem; line-height: 1.4; }
+    .profile-image { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid white; }
+    .profile-image-large { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid white; }
+    .profile-image-full { width: 100%; height: 240px; object-fit: cover; }
+    .contact-item { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 10px; }
+    .contact-icon { width: 12px; height: 12px; flex-shrink: 0; }
+    .section { margin-bottom: 1.5rem; break-inside: avoid; }
+    .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem; padding-bottom: 0.25rem; border-bottom: 2px solid #e2e8f0; }
+    .section-title-blue { color: #2563eb; border-bottom-color: #2563eb; }
+    .section-title-accent { color: ${s.accentColor}; border-bottom-color: ${s.accentColor}; }
+    .experience-item { margin-bottom: 1.5rem; break-inside: avoid; }
+    .experience-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+    .experience-company { font-weight: 700; font-size: 13px; }
+    .experience-role { font-weight: 600; font-size: 12px; color: #4b5563; margin-bottom: 0.25rem; }
+    .experience-date { font-size: 10px; color: #6b7280; text-align: right; flex-shrink: 0; }
+    .bullet-list { list-style: none; margin: 0; padding: 0; }
+    .bullet-item { position: relative; padding-left: 1rem; margin-bottom: 0.25rem; font-size: 10px; line-height: 1.4; }
+    .bullet-item:before { content: '•'; position: absolute; left: 0; color: ${s.accentColor}; font-weight: bold; }
+    .skills-grid { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+    .skill-tag { background: #f1f5f9; color: #475569; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 9px; font-weight: 500; }
+  `;
+
   const downloadPDF = async () => {
     const previewEl = document.getElementById('resume-preview');
     if (!previewEl) return;
@@ -446,310 +487,12 @@ const ResumeBuilder: React.FC = () => {
     // Generate comprehensive CSS for PDF
     const pdfCSS = `
       <style>
-        * {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
-        }
-        
-        body {
-          font-family: ${settings.fontFamily}, Arial, sans-serif;
-          line-height: 1.4;
-          color: #1f2937;
-          background: white;
-          margin: 0;
-          padding: 0;
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
-        }
-        
-        .resume-preview {
-          width: 8.5in;
-          min-height: 11in;
-          margin: 0 auto;
-          background: white;
-          font-size: 11px;
-          line-height: 1.4;
-        }
-        
-        /* Template Classic Styles */
-        .template-classic {
-          display: flex;
-          min-height: 11in;
-        }
-        
-        .template-classic .sidebar {
-          width: 2.8in;
-          background-color: #f8fafc;
-          padding: 1.2rem;
-          border-right: 1px solid #e2e8f0;
-        }
-        
-        .template-classic .main-content {
-          flex: 1;
-          padding: 1.2rem;
-          background: white;
-        }
-        
-        /* Template Blue Styles */
-        .template-blue .blue-header {
-          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-          color: white;
-          padding: 1.5rem;
-          display: flex;
-          align-items: center;
-          gap: 1.5rem;
-        }
-        
-        .template-blue .content-wrapper {
-          display: flex;
-          gap: 2rem;
-          padding: 1.5rem;
-        }
-        
-        .template-blue .left-sidebar {
-          width: 2.5in;
-        }
-        
-        .template-blue .main-content {
-          flex: 1;
-        }
-        
-        /* Template Photo Left Styles */
-        .template-photo-left {
-          display: flex;
-          min-height: 11in;
-        }
-        
-        .template-photo-left .photo-sidebar {
-          width: 2.8in;
-          background-color: #f1f5f9;
-        }
-        
-        .template-photo-left .main-wrapper {
-          flex: 1;
-        }
-        
-        .template-photo-left .colored-header {
-          background: ${settings.accentColor};
-          color: white;
-          padding: 1.5rem;
-        }
-        
-        .template-photo-left .main-content {
-          padding: 1.5rem;
-        }
-        
-        /* Common Typography */
-        h1 {
-          font-size: 24px;
-          font-weight: 700;
-          margin-bottom: 0.5rem;
-          line-height: 1.2;
-        }
-        
-        h2 {
-          font-size: 16px;
-          font-weight: 700;
-          margin-bottom: 0.75rem;
-          line-height: 1.3;
-        }
-        
-        h3 {
-          font-size: 14px;
-          font-weight: 600;
-          margin-bottom: 0.5rem;
-          line-height: 1.3;
-        }
-        
-        h4 {
-          font-size: 12px;
-          font-weight: 600;
-          margin-bottom: 0.25rem;
-        }
-        
-        p {
-          margin-bottom: 0.5rem;
-          line-height: 1.4;
-        }
-        
-        /* Profile Image */
-        .profile-image {
-          width: 80px;
-          height: 80px;
-          border-radius: 50%;
-          object-fit: cover;
-          border: 3px solid white;
-        }
-        
-        .profile-image-large {
-          width: 120px;
-          height: 120px;
-          border-radius: 50%;
-          object-fit: cover;
-          border: 4px solid white;
-        }
-        
-        .profile-image-full {
-          width: 100%;
-          height: 240px;
-          object-fit: cover;
-        }
-        
-        /* Contact Info */
-        .contact-item {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          margin-bottom: 0.5rem;
-          font-size: 10px;
-        }
-        
-        .contact-icon {
-          width: 12px;
-          height: 12px;
-          flex-shrink: 0;
-        }
-        
-        /* Sections */
-        .section {
-          margin-bottom: 1.5rem;
-          break-inside: avoid;
-        }
-        
-        .section-title {
-          font-size: 13px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          margin-bottom: 0.75rem;
-          padding-bottom: 0.25rem;
-          border-bottom: 2px solid #e2e8f0;
-        }
-        
-        .section-title-blue {
-          color: #2563eb;
-          border-bottom-color: #2563eb;
-        }
-        
-        .section-title-accent {
-          color: ${settings.accentColor};
-          border-bottom-color: ${settings.accentColor};
-        }
-        
-        /* Experience */
-        .experience-item {
-          margin-bottom: 1.5rem;
-          break-inside: avoid;
-        }
-        
-        .experience-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 0.5rem;
-        }
-        
-        .experience-company {
-          font-weight: 700;
-          font-size: 13px;
-        }
-        
-        .experience-role {
-          font-weight: 600;
-          font-size: 12px;
-          color: #4b5563;
-          margin-bottom: 0.25rem;
-        }
-        
-        .experience-date {
-          font-size: 10px;
-          color: #6b7280;
-          text-align: right;
-          flex-shrink: 0;
-        }
-        
-        .bullet-list {
-          list-style: none;
-          margin: 0;
-          padding: 0;
-        }
-        
-        .bullet-item {
-          position: relative;
-          padding-left: 1rem;
-          margin-bottom: 0.25rem;
-          font-size: 10px;
-          line-height: 1.4;
-        }
-        
-        .bullet-item:before {
-          content: '•';
-          position: absolute;
-          left: 0;
-          color: ${settings.accentColor};
-          font-weight: bold;
-        }
-        
-        /* Skills */
-        .skills-grid {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.25rem;
-        }
-        
-        .skill-tag {
-          background: #f1f5f9;
-          color: #475569;
-          padding: 0.25rem 0.5rem;
-          border-radius: 4px;
-          font-size: 9px;
-          font-weight: 500;
-        }
-        
-        /* Utilities */
-        .text-white { color: white; }
-        .text-muted { color: #6b7280; }
-        .text-sm { font-size: 10px; }
-        .text-xs { font-size: 9px; }
-        .font-bold { font-weight: 700; }
-        .font-semibold { font-weight: 600; }
-        .font-medium { font-weight: 500; }
-        .mb-1 { margin-bottom: 0.25rem; }
-        .mb-2 { margin-bottom: 0.5rem; }
-        .mb-3 { margin-bottom: 0.75rem; }
-        .mb-4 { margin-bottom: 1rem; }
-        .mb-6 { margin-bottom: 1.5rem; }
-        .flex { display: flex; }
-        .items-center { align-items: center; }
-        .justify-between { justify-content: space-between; }
-        .gap-1 { gap: 0.25rem; }
-        .gap-2 { gap: 0.5rem; }
-        .gap-4 { gap: 1rem; }
-        
-        /* Print optimizations */
-        @page {
-          margin: 0.5in;
-          size: letter;
-        }
-        
-        @media print {
-          body { 
-            margin: 0; 
-            padding: 0; 
-          }
-          .resume-preview { 
-            box-shadow: none; 
-            border: none;
-            page-break-inside: avoid;
-          }
-          .section {
-            page-break-inside: avoid;
-          }
-          .experience-item {
-            page-break-inside: avoid;
-          }
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: ${settings.fontFamily}, Arial, sans-serif; line-height: 1.4; color: #1f2937; background: white; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        ${getPreviewCSS(settings)}
+        .text-white { color: white; } .text-muted { color: #6b7280; } .text-sm { font-size: 10px; } .text-xs { font-size: 9px; } .font-bold { font-weight: 700; } .font-semibold { font-weight: 600; } .font-medium { font-weight: 500; } .mb-1 { margin-bottom: 0.25rem; } .mb-2 { margin-bottom: 0.5rem; } .mb-3 { margin-bottom: 0.75rem; } .mb-4 { margin-bottom: 1rem; } .mb-6 { margin-bottom: 1.5rem; } .flex { display: flex; } .items-center { align-items: center; } .justify-between { justify-content: space-between; } .gap-1 { gap: 0.25rem; } .gap-2 { gap: 0.5rem; } .gap-4 { gap: 1rem; }
+        @page { margin: 0.5in; size: letter; }
+        @media print { body { margin: 0; padding: 0; } .resume-preview { box-shadow: none; border: none; page-break-inside: avoid; } .section { page-break-inside: avoid; } .experience-item { page-break-inside: avoid; } }
       </style>
     `;
 
@@ -975,528 +718,638 @@ const ResumeBuilder: React.FC = () => {
 
   // Render Resume Preview
   const renderResumePreview = () => {
-    const templateClasses = getTemplateClasses();
-    const accentColor = settings.accentColor;
-    
+    // Robust data validation with fallbacks
+    const safeResumeData = {
+      fullName: resumeData?.fullName || '',
+      headline: resumeData?.headline || '',
+      summary: resumeData?.summary || '',
+      phone: resumeData?.phone || '',
+      email: resumeData?.email || '',
+      location: resumeData?.location || '',
+      website: resumeData?.website || '',
+      picture: resumeData?.picture || '',
+      profiles: Array.isArray(resumeData?.profiles) ? resumeData.profiles : [],
+      skills: Array.isArray(resumeData?.skills) ? resumeData.skills : [],
+      languages: Array.isArray(resumeData?.languages) ? resumeData.languages : [],
+      certifications: Array.isArray(resumeData?.certifications) ? resumeData.certifications : [],
+      experience: Array.isArray(resumeData?.experience) ? resumeData.experience : [],
+      education: Array.isArray(resumeData?.education) ? resumeData.education : []
+    };
+  
+    // Robust settings validation
+    const safeSettings = {
+      template: settings?.template || 'classic',
+      fontFamily: settings?.fontFamily || 'Arial, sans-serif',
+      accentColor: settings?.accentColor || '#3b82f6',
+      showIcons: settings?.showIcons !== undefined ? settings.showIcons : true
+    };
+  
+    const templateClasses = getTemplateClasses ? getTemplateClasses() : '';
+  
+    // Utility functions for safe data handling
+    const formatDate = (dateString, defaultText = '') => {
+      if (!dateString) return defaultText;
+      try {
+        return new Date(dateString).toLocaleDateString('en-US', { 
+          month: 'short', 
+          year: 'numeric' 
+        });
+      } catch (error) {
+        console.warn('Date formatting error:', error);
+        return defaultText;
+      }
+    };
+  
+    const formatLongDate = (dateString, defaultText = '') => {
+      if (!dateString) return defaultText;
+      try {
+        return new Date(dateString).toLocaleDateString('en-US', { 
+          month: 'long', 
+          year: 'numeric' 
+        });
+      } catch (error) {
+        console.warn('Date formatting error:', error);
+        return defaultText;
+      }
+    };
+  
+    const renderContactItem = (icon, text, showIcon = true) => {
+      if (!text) return null;
+      return (
+        <div className="contact-item">
+          {showIcon && icon}
+          <span className="text-xs break-words">{text}</span>
+        </div>
+      );
+    };
+  
+    const renderProfileIcon = (platform) => {
+      const iconMap = {
+        'GitHub': <Github className="contact-icon" />,
+        'LinkedIn': <Linkedin className="contact-icon" />,
+        'github': <Github className="contact-icon" />,
+        'linkedin': <Linkedin className="contact-icon" />
+      };
+      return iconMap[platform] || <Globe className="contact-icon" />;
+    };
+  
+    const renderClassicTemplate = () => (
+      <div className="template-classic">
+        {/* Left Sidebar */}
+        <div className="sidebar">
+          {/* Profile Picture */}
+          {safeResumeData.picture && (
+            <div className="mb-6 text-center">
+              <img 
+                src={safeResumeData.picture} 
+                alt="Profile" 
+                className="profile-image mx-auto"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = 'none';
+                  console.warn('Failed to load profile image');
+                }}
+              />
+            </div>
+          )}
+          
+          {/* Contact Info */}
+          <div className="section">
+            <h3 className="section-title">CONTACT</h3>
+            <div className="space-y-2">
+              {renderContactItem(
+                safeSettings.showIcons && <Phone className="contact-icon" />, 
+                safeResumeData.phone
+              )}
+              {renderContactItem(
+                safeSettings.showIcons && <Mail className="contact-icon" />, 
+                safeResumeData.email
+              )}
+              {renderContactItem(
+                safeSettings.showIcons && <MapPin className="contact-icon" />, 
+                safeResumeData.location
+              )}
+              {renderContactItem(
+                safeSettings.showIcons && <Globe className="contact-icon" />, 
+                safeResumeData.website
+              )}
+            </div>
+          </div>
+  
+          {/* Profiles */}
+          {safeResumeData.profiles.length > 0 && (
+            <div className="section">
+              <h3 className="section-title">PROFILES</h3>
+              <div className="space-y-2">
+                {safeResumeData.profiles.map((profile, index) => {
+                  const profileId = profile?.id || `profile-${index}`;
+                  return (
+                    <div key={profileId} className="contact-item">
+                      {safeSettings.showIcons && renderProfileIcon(profile?.platform)}
+                      <span className="text-xs break-words">{profile?.label || profile?.url || ''}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+  
+          {/* Skills */}
+          {safeResumeData.skills.length > 0 && (
+            <div className="section">
+              <h3 className="section-title">TECHNICAL SKILLS</h3>
+              <div className="text-xs">
+                {safeResumeData.skills.filter(skill => skill && skill.trim()).join(', ')}
+              </div>
+            </div>
+          )}
+  
+          {/* Languages */}
+          {safeResumeData.languages.length > 0 && (
+            <div className="section">
+              <h3 className="section-title">LANGUAGES</h3>
+              <div className="text-xs space-y-1">
+                {safeResumeData.languages.map((language, index) => (
+                  <div key={`lang-${index}`}>{language || ''}</div>
+                ))}
+              </div>
+            </div>
+          )}
+  
+          {/* Certifications */}
+          {safeResumeData.certifications.length > 0 && (
+            <div className="section">
+              <h3 className="section-title">CERTIFICATIONS</h3>
+              <div className="text-xs space-y-1">
+                {safeResumeData.certifications.map((cert, index) => (
+                  <div key={`cert-${index}`}>• {cert || ''}</div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+  
+        {/* Right Content */}
+        <div className="main-content">
+          {/* Header */}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold mb-2 uppercase tracking-wide">
+              {safeResumeData.fullName || 'YOUR NAME'}
+            </h1>
+            <p className="text-lg text-gray-600 mb-4">
+              {safeResumeData.headline || 'Professional Title'}
+            </p>
+          </div>
+  
+          {/* Summary */}
+          {safeResumeData.summary && (
+            <div className="section">
+              <h2 className="section-title">SUMMARY</h2>
+              <p className="text-sm leading-relaxed">{safeResumeData.summary}</p>
+            </div>
+          )}
+  
+          {/* Experience */}
+          {safeResumeData.experience.length > 0 && (
+            <div className="section">
+              <h2 className="section-title">WORK EXPERIENCE</h2>
+              {safeResumeData.experience.map((exp, index) => {
+                const expId = exp?.id || `exp-${index}`;
+                const validBullets = Array.isArray(exp?.bullets) 
+                  ? exp.bullets.filter(b => b && b.trim()) 
+                  : [];
+  
+                return (
+                  <div key={expId} className="experience-item">
+                    <div className="experience-header">
+                      <div>
+                        <div className="experience-company">{exp?.company || 'Company Name'}</div>
+                        <div className="experience-role">{exp?.role || 'Job Title'}</div>
+                      </div>
+                      <div className="experience-date">
+                        <div className="text-red-600 text-center">•</div>
+                        <div>
+                          {formatDate(exp?.startDate, 'Start')} — {
+                            exp?.current ? 'Present' : formatDate(exp?.endDate, 'End')
+                          }
+                        </div>
+                      </div>
+                    </div>
+                    {validBullets.length > 0 && (
+                      <ul className="bullet-list">
+                        {validBullets.map((bullet, bulletIndex) => (
+                          <li key={`${expId}-bullet-${bulletIndex}`} className="bullet-item">
+                            {bullet}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+  
+          {/* Education */}
+          {safeResumeData.education.length > 0 && (
+            <div className="section">
+              <h2 className="section-title">EDUCATION</h2>
+              {safeResumeData.education.map((edu, index) => {
+                const eduId = edu?.id || `edu-${index}`;
+                return (
+                  <div key={eduId} className="mb-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-bold text-sm">{edu?.institution || 'Institution'}</h3>
+                        <p className="text-sm">
+                          {edu?.degree || 'Degree'}
+                          {edu?.field ? ` in ${edu.field}` : ''}
+                        </p>
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        {edu?.graduationYear || 'Graduation Year'}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  
+    const renderBlueTemplate = () => (
+      <div className="template-blue">
+        {/* Blue Header */}
+        <div className="blue-header">
+          <div className="flex items-center gap-6">
+            {safeResumeData.picture && (
+              <img 
+                src={safeResumeData.picture} 
+                alt="Profile" 
+                className="profile-image-large"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = 'none';
+                  console.warn('Failed to load profile image');
+                }}
+              />
+            )}
+            <div className="flex-1">
+              <h1 className="text-4xl font-bold mb-2 text-white">
+                {safeResumeData.fullName || 'John Doe'}
+              </h1>
+              <p className="text-xl text-white/90 mb-4">
+                {safeResumeData.headline || 'Creative and Innovative Web Developer'}
+              </p>
+              <div className="flex flex-wrap gap-4 text-sm text-white/80">
+                {renderContactItem(<MapPin className="contact-icon" />, safeResumeData.location)}
+                {renderContactItem(<Phone className="contact-icon" />, safeResumeData.phone)}
+                {renderContactItem(<Mail className="contact-icon" />, safeResumeData.email)}
+                {renderContactItem(<Globe className="contact-icon" />, safeResumeData.website)}
+              </div>
+            </div>
+          </div>
+        </div>
+  
+        <div className="content-wrapper">
+          {/* Left Sidebar */}
+          <div className="left-sidebar space-y-6">
+            {/* Profiles */}
+            {safeResumeData.profiles.length > 0 && (
+              <div className="section">
+                <h3 className="section-title-blue">Profiles</h3>
+                <div className="space-y-2">
+                  {safeResumeData.profiles.map((profile, index) => {
+                    const profileId = profile?.id || `profile-${index}`;
+                    return (
+                      <div key={profileId} className="contact-item">
+                        {renderProfileIcon(profile?.platform)}
+                        <div>
+                          <div className="font-medium text-xs">
+                            {profile?.label || profile?.url || ''}
+                          </div>
+                          <div className="text-gray-600 text-xs">
+                            {profile?.platform || 'Profile'}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+  
+            {/* Skills */}
+            {safeResumeData.skills.length > 0 && (
+              <div className="section">
+                <h3 className="section-title-blue">Skills</h3>
+                <div className="space-y-3">
+                  <div>
+                    <h4 className="font-semibold text-sm">Web Technologies</h4>
+                    <p className="text-sm text-gray-600">Advanced</p>
+                    <p className="text-xs text-gray-600">
+                      {safeResumeData.skills.slice(0, 4).filter(s => s && s.trim()).join(', ')}
+                    </p>
+                  </div>
+                  {safeResumeData.skills.length > 4 && (
+                    <div>
+                      <h4 className="font-semibold text-sm">Programming</h4>
+                      <p className="text-sm text-gray-600">Intermediate</p>
+                      <p className="text-xs text-gray-600">
+                        {safeResumeData.skills.slice(4).filter(s => s && s.trim()).join(', ')}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+  
+            {/* Languages */}
+            {safeResumeData.languages.length > 0 && (
+              <div className="section">
+                <h3 className="section-title-blue">Languages</h3>
+                <div className="space-y-2">
+                  {safeResumeData.languages.map((language, index) => (
+                    <div key={`lang-${index}`} className="text-sm">
+                      <div className="font-medium">{language || ''}</div>
+                      <div className="text-gray-600 text-xs">
+                        {index === 0 ? 'Native Speaker' : 'Intermediate'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+  
+          {/* Right Content */}
+          <div className="main-content space-y-6">
+            {/* Summary */}
+            {safeResumeData.summary && (
+              <div className="section">
+                <h2 className="section-title-blue">Summary</h2>
+                <p className="text-sm leading-relaxed">{safeResumeData.summary}</p>
+              </div>
+            )}
+  
+            {/* Experience */}
+            {safeResumeData.experience.length > 0 && (
+              <div className="section">
+                <h2 className="section-title-blue">Experience</h2>
+                {safeResumeData.experience.map((exp, index) => {
+                  const expId = exp?.id || `exp-${index}`;
+                  const validBullets = Array.isArray(exp?.bullets) 
+                    ? exp.bullets.filter(b => b && b.trim()) 
+                    : [];
+  
+                  return (
+                    <div key={expId} className="experience-item border-l-4 border-blue-300 pl-4">
+                      <div className="experience-header">
+                        <div>
+                          <div className="experience-company text-lg">
+                            {exp?.company || 'Creative Solutions Inc.'}
+                          </div>
+                          <div className="text-blue-600 font-medium text-sm">
+                            {exp?.role || 'Senior Web Developer'}
+                          </div>
+                        </div>
+                        <div className="experience-date">
+                          <div className="font-medium">
+                            {formatLongDate(exp?.startDate, 'January 2019')} to {
+                              exp?.current ? 'Present' : formatLongDate(exp?.endDate, 'Present')
+                            }
+                          </div>
+                          <div className="text-gray-600">
+                            {safeResumeData.location || 'San Francisco, CA'}
+                          </div>
+                        </div>
+                      </div>
+                      {validBullets.length > 0 && (
+                        <ul className="bullet-list mt-2">
+                          {validBullets.map((bullet, bulletIndex) => (
+                            <li key={`${expId}-bullet-${bulletIndex}`} className="bullet-item text-blue-500">
+                              {bullet}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+  
+            {/* Education */}
+            {safeResumeData.education.length > 0 && (
+              <div className="section">
+                <h2 className="section-title-blue">Education</h2>
+                {safeResumeData.education.map((edu, index) => {
+                  const eduId = edu?.id || `edu-${index}`;
+                  return (
+                    <div key={eduId} className="mb-4 border-l-4 border-blue-300 pl-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-bold">{edu?.institution || 'University of California'}</h3>
+                          <p>{edu?.degree || "Bachelor's in Computer Science"}</p>
+                        </div>
+                        <div className="text-right text-sm">
+                          <div className="font-medium">
+                            {edu?.graduationYear || '2016'}
+                          </div>
+                          <div className="text-gray-600">Berkeley, CA</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  
+    const renderPhotoLeftTemplate = () => (
+      <div className="template-photo-left">
+        {/* Left Photo Section */}
+        <div className="photo-sidebar">
+          {safeResumeData.picture && (
+            <img 
+              src={safeResumeData.picture} 
+              alt="Profile" 
+              className="profile-image-full"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = 'none';
+                console.warn('Failed to load profile image');
+              }}
+            />
+          )}
+          
+          <div className="p-6">
+            {/* Skills */}
+            {safeResumeData.skills.length > 0 && (
+              <div className="section">
+                <h3 className="section-title-accent">Skills</h3>
+                <div className="skills-grid">
+                  {safeResumeData.skills.filter(skill => skill && skill.trim()).map((skill, index) => (
+                    <span key={`skill-${index}`} className="skill-tag">{skill}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+  
+            {/* Languages */}
+            {safeResumeData.languages.length > 0 && (
+              <div className="section">
+                <h3 className="section-title-accent">Languages</h3>
+                <div className="space-y-2">
+                  {safeResumeData.languages.map((language, index) => (
+                    <div key={`lang-${index}`} className="text-sm">
+                      <div className="font-medium">{language || ''}</div>
+                      <div className="text-gray-600 text-xs">
+                        {index === 0 ? 'Native Speaker' : 'Intermediate'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+  
+        {/* Right Content */}
+        <div className="main-wrapper">
+          {/* Colored Header */}
+          <div className="colored-header">
+            <h1 className="text-4xl font-bold mb-2 text-white">
+              {safeResumeData.fullName || 'John Doe'}
+            </h1>
+            <p className="text-xl mb-4 text-white/90">
+              {safeResumeData.headline || 'Creative and Innovative Web Developer'}
+            </p>
+            <div className="flex flex-wrap gap-4 text-sm text-white/80">
+              {renderContactItem(<MapPin className="contact-icon" />, safeResumeData.location)}
+              {renderContactItem(<Phone className="contact-icon" />, safeResumeData.phone)}
+              {renderContactItem(<Mail className="contact-icon" />, safeResumeData.email)}
+              {renderContactItem(<Globe className="contact-icon" />, safeResumeData.website)}
+            </div>
+          </div>
+  
+          <div className="main-content space-y-6">
+            {/* Summary */}
+            {safeResumeData.summary && (
+              <div className="section">
+                <h2 className="section-title-accent">Summary</h2>
+                <p className="text-sm leading-relaxed">{safeResumeData.summary}</p>
+              </div>
+            )}
+  
+            {/* Experience */}
+            {safeResumeData.experience.length > 0 && (
+              <div className="section">
+                <h2 className="section-title-accent">Experience</h2>
+                {safeResumeData.experience.map((exp, index) => {
+                  const expId = exp?.id || `exp-${index}`;
+                  const validBullets = Array.isArray(exp?.bullets) 
+                    ? exp.bullets.filter(b => b && b.trim()) 
+                    : [];
+  
+                  return (
+                    <div key={expId} className="experience-item">
+                      <div className="experience-header">
+                        <div>
+                          <div className="experience-company text-lg">
+                            {exp?.company || 'Creative Solutions Inc.'}
+                          </div>
+                          <div 
+                            className="font-medium text-sm" 
+                            style={{ color: safeSettings.accentColor }}
+                          >
+                            {exp?.role || 'Senior Web Developer'}
+                          </div>
+                        </div>
+                        <div className="experience-date">
+                          <div className="font-medium">
+                            {formatLongDate(exp?.startDate, 'January 2019')} to {
+                              exp?.current ? 'Present' : formatLongDate(exp?.endDate, 'Present')
+                            }
+                          </div>
+                          <div className="text-gray-600">
+                            {safeResumeData.location || 'San Francisco, CA'}
+                          </div>
+                        </div>
+                      </div>
+                      {validBullets.length > 0 && (
+                        <ul className="bullet-list mt-2">
+                          {validBullets.map((bullet, bulletIndex) => (
+                            <li key={`${expId}-bullet-${bulletIndex}`} className="bullet-item">
+                              {bullet}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+  
+            {/* Education */}
+            {safeResumeData.education.length > 0 && (
+              <div className="section">
+                <h2 className="section-title-accent">Education</h2>
+                {safeResumeData.education.map((edu, index) => {
+                  const eduId = edu?.id || `edu-${index}`;
+                  return (
+                    <div key={eduId} className="mb-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-bold">{edu?.institution || 'University of California'}</h3>
+                          <p>{edu?.degree || "Bachelor's in Computer Science"}</p>
+                        </div>
+                        <div className="text-right text-sm">
+                          <div className="font-medium">
+                            {edu?.graduationYear || '2016'}
+                          </div>
+                          <div className="text-gray-600">Berkeley, CA</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  
+    const renderTemplate = () => {
+      switch (safeSettings.template) {
+        case 'blue':
+          return renderBlueTemplate();
+        case 'photo-left':
+          return renderPhotoLeftTemplate();
+        case 'classic':
+        default:
+          return renderClassicTemplate();
+      }
+    };
+  
     return (
       <div 
         id="resume-preview"
         className={`resume-preview ${templateClasses} bg-white text-gray-800`}
         style={{ 
-          fontFamily: settings.fontFamily,
+          fontFamily: safeSettings.fontFamily,
           fontSize: '11px',
           lineHeight: '1.4'
         }}
       >
-        {settings.template === 'classic' && (
-          <div className="template-classic">
-            {/* Left Sidebar */}
-            <div className="sidebar">
-              {/* Profile Picture */}
-              {resumeData.picture && (
-                <div className="mb-6 text-center">
-                  <img 
-                    src={resumeData.picture} 
-                    alt="Profile" 
-                    className="profile-image mx-auto"
-                  />
-                </div>
-              )}
-              
-              {/* Contact Info */}
-              <div className="section">
-                <h3 className="section-title">CONTACT</h3>
-                <div className="space-y-2">
-                  {resumeData.phone && (
-                    <div className="contact-item">
-                      {settings.showIcons && <Phone className="contact-icon" />}
-                      <span className="text-xs">{resumeData.phone}</span>
-                    </div>
-                  )}
-                  {resumeData.email && (
-                    <div className="contact-item">
-                      {settings.showIcons && <Mail className="contact-icon" />}
-                      <span className="text-xs">{resumeData.email}</span>
-                    </div>
-                  )}
-                  {resumeData.location && (
-                    <div className="contact-item">
-                      {settings.showIcons && <MapPin className="contact-icon" />}
-                      <span className="text-xs">{resumeData.location}</span>
-                    </div>
-                  )}
-                  {resumeData.website && (
-                    <div className="contact-item">
-                      {settings.showIcons && <Globe className="contact-icon" />}
-                      <span className="text-xs break-all">{resumeData.website}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Profiles */}
-              {resumeData.profiles.length > 0 && (
-                <div className="section">
-                  <h3 className="section-title">PROFILES</h3>
-                  <div className="space-y-2">
-                    {resumeData.profiles.map((profile) => (
-                      <div key={profile.id} className="contact-item">
-                        {settings.showIcons && (
-                          profile.platform === 'GitHub' ? <Github className="contact-icon" /> :
-                          profile.platform === 'LinkedIn' ? <Linkedin className="contact-icon" /> :
-                          <Globe className="contact-icon" />
-                        )}
-                        <span className="text-xs break-all">{profile.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Skills */}
-              {resumeData.skills.length > 0 && (
-                <div className="section">
-                  <h3 className="section-title">TECHNICAL SKILLS</h3>
-                  <div className="text-xs">
-                    {resumeData.skills.join(', ')}
-                  </div>
-                </div>
-              )}
-
-              {/* Languages */}
-              {resumeData.languages.length > 0 && (
-                <div className="section">
-                  <h3 className="section-title">LANGUAGES</h3>
-                  <div className="text-xs space-y-1">
-                    {resumeData.languages.map((language) => (
-                      <div key={language}>{language}</div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Certifications */}
-              {resumeData.certifications.length > 0 && (
-                <div className="section">
-                  <h3 className="section-title">CERTIFICATIONS</h3>
-                  <div className="text-xs space-y-1">
-                    {resumeData.certifications.map((cert, index) => (
-                      <div key={index}>• {cert}</div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Right Content */}
-            <div className="main-content">
-              {/* Header */}
-              <div className="mb-6">
-                <h1 className="text-2xl font-bold mb-2 uppercase tracking-wide">
-                  {resumeData.fullName || 'YOUR NAME'}
-                </h1>
-                <p className="text-lg text-gray-600 mb-4">
-                  {resumeData.headline || 'Professional Title'}
-                </p>
-              </div>
-
-              {/* Summary */}
-              {resumeData.summary && (
-                <div className="section">
-                  <h2 className="section-title">SUMMARY</h2>
-                  <p className="text-sm leading-relaxed">{resumeData.summary}</p>
-                </div>
-              )}
-
-              {/* Experience */}
-              {resumeData.experience.length > 0 && (
-                <div className="section">
-                  <h2 className="section-title">WORK EXPERIENCE</h2>
-                  {resumeData.experience.map((exp) => (
-                    <div key={exp.id} className="experience-item">
-                      <div className="experience-header">
-                        <div>
-                          <div className="experience-company">{exp.company || 'Company Name'}</div>
-                          <div className="experience-role">{exp.role || 'Job Title'}</div>
-                        </div>
-                        <div className="experience-date">
-                          <div className="text-red-600 text-center">•</div>
-                          <div>
-                            {exp.startDate ? new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Start'} — {exp.current ? 'Present' : exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'End'}
-                          </div>
-                        </div>
-                      </div>
-                      {exp.bullets.filter(b => b.trim()).length > 0 && (
-                        <ul className="bullet-list">
-                          {exp.bullets.filter(b => b.trim()).map((bullet, index) => (
-                            <li key={index} className="bullet-item">{bullet}</li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Education */}
-              {resumeData.education.length > 0 && (
-                <div className="section">
-                  <h2 className="section-title">EDUCATION</h2>
-                  {resumeData.education.map((edu) => (
-                    <div key={edu.id} className="mb-3">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-bold text-sm">{edu.institution || 'Institution'}</h3>
-                          <p className="text-sm">{edu.degree || 'Degree'} {edu.field ? `in ${edu.field}` : ''}</p>
-                        </div>
-                        <div className="text-xs text-gray-600">
-                          {edu.graduationYear || 'Graduation Year'}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {settings.template === 'blue' && (
-          <div className="template-blue">
-            {/* Blue Header */}
-            <div className="blue-header">
-              <div className="flex items-center gap-6">
-                {resumeData.picture && (
-                  <img 
-                    src={resumeData.picture} 
-                    alt="Profile" 
-                    className="profile-image-large"
-                  />
-                )}
-                <div className="flex-1">
-                  <h1 className="text-4xl font-bold mb-2 text-white">
-                    {resumeData.fullName || 'John Doe'}
-                  </h1>
-                  <p className="text-xl text-white/90 mb-4">
-                    {resumeData.headline || 'Creative and Innovative Web Developer'}
-                  </p>
-                  <div className="flex flex-wrap gap-4 text-sm text-white/80">
-                    {resumeData.location && (
-                      <div className="contact-item">
-                        <MapPin className="contact-icon" />
-                        <span>{resumeData.location}</span>
-                      </div>
-                    )}
-                    {resumeData.phone && (
-                      <div className="contact-item">
-                        <Phone className="contact-icon" />
-                        <span>{resumeData.phone}</span>
-                      </div>
-                    )}
-                    {resumeData.email && (
-                      <div className="contact-item">
-                        <Mail className="contact-icon" />
-                        <span>{resumeData.email}</span>
-                      </div>
-                    )}
-                    {resumeData.website && (
-                      <div className="contact-item">
-                        <Globe className="contact-icon" />
-                        <span>{resumeData.website}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="content-wrapper">
-              {/* Left Sidebar */}
-              <div className="left-sidebar space-y-6">
-                {/* Profiles */}
-                {resumeData.profiles.length > 0 && (
-                  <div className="section">
-                    <h3 className="section-title-blue">Profiles</h3>
-                    <div className="space-y-2">
-                      {resumeData.profiles.map((profile) => (
-                        <div key={profile.id} className="contact-item">
-                          {profile.platform === 'LinkedIn' && <Linkedin className="contact-icon text-blue-600" />}
-                          {profile.platform === 'GitHub' && <Github className="contact-icon" />}
-                          <div>
-                            <div className="font-medium text-xs">{profile.platform.toLowerCase()}</div>
-                            <div className="text-gray-600 text-xs">{profile.platform}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Skills */}
-                {resumeData.skills.length > 0 && (
-                  <div className="section">
-                    <h3 className="section-title-blue">Skills</h3>
-                    <div className="space-y-3">
-                      <div>
-                        <h4 className="font-semibold text-sm">Web Technologies</h4>
-                        <p className="text-sm text-gray-600">Advanced</p>
-                        <p className="text-xs text-gray-600">{resumeData.skills.slice(0, 4).join(', ')}</p>
-                      </div>
-                      {resumeData.skills.length > 4 && (
-                        <div>
-                          <h4 className="font-semibold text-sm">Programming</h4>
-                          <p className="text-sm text-gray-600">Intermediate</p>
-                          <p className="text-xs text-gray-600">{resumeData.skills.slice(4).join(', ')}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Languages */}
-                {resumeData.languages.length > 0 && (
-                  <div className="section">
-                    <h3 className="section-title-blue">Languages</h3>
-                    <div className="space-y-2">
-                      {resumeData.languages.map((language, index) => (
-                        <div key={language} className="text-sm">
-                          <div className="font-medium">{language}</div>
-                          <div className="text-gray-600 text-xs">
-                            {index === 0 ? 'Native Speaker' : 'Intermediate'}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Right Content */}
-              <div className="main-content space-y-6">
-                {/* Summary */}
-                {resumeData.summary && (
-                  <div className="section">
-                    <h2 className="section-title-blue">Summary</h2>
-                    <p className="text-sm leading-relaxed">{resumeData.summary}</p>
-                  </div>
-                )}
-
-                {/* Experience */}
-                {resumeData.experience.length > 0 && (
-                  <div className="section">
-                    <h2 className="section-title-blue">Experience</h2>
-                    {resumeData.experience.map((exp) => (
-                      <div key={exp.id} className="experience-item border-l-4 border-blue-300 pl-4">
-                        <div className="experience-header">
-                          <div>
-                            <div className="experience-company text-lg">
-                              {exp.company || 'Creative Solutions Inc.'}
-                            </div>
-                            <div className="text-blue-600 font-medium text-sm">
-                              {exp.role || 'Senior Web Developer'}
-                            </div>
-                          </div>
-                          <div className="experience-date">
-                            <div className="font-medium">
-                              {exp.startDate ? new Date(exp.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'January 2019'} to {exp.current ? 'Present' : exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Present'}
-                            </div>
-                            <div className="text-gray-600">{resumeData.location || 'San Francisco, CA'}</div>
-                          </div>
-                        </div>
-                        {exp.bullets.filter(b => b.trim()).length > 0 && (
-                          <ul className="bullet-list mt-2">
-                            {exp.bullets.filter(b => b.trim()).map((bullet, index) => (
-                              <li key={index} className="bullet-item text-blue-500">{bullet}</li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Education */}
-                {resumeData.education.length > 0 && (
-                  <div className="section">
-                    <h2 className="section-title-blue">Education</h2>
-                    {resumeData.education.map((edu) => (
-                      <div key={edu.id} className="mb-4 border-l-4 border-blue-300 pl-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-bold">{edu.institution || 'University of California'}</h3>
-                            <p>{edu.degree || "Bachelor's in Computer Science"}</p>
-                          </div>
-                          <div className="text-right text-sm">
-                            <div className="font-medium">
-                              {edu.graduationYear || '2016'}
-                            </div>
-                            <div className="text-gray-600">Berkeley, CA</div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {settings.template === 'photo-left' && (
-          <div className="template-photo-left">
-            {/* Left Photo Section */}
-            <div className="photo-sidebar">
-              {resumeData.picture && (
-                <img 
-                  src={resumeData.picture} 
-                  alt="Profile" 
-                  className="profile-image-full"
-                />
-              )}
-              
-              <div className="p-6">
-                {/* Skills */}
-                {resumeData.skills.length > 0 && (
-                  <div className="section">
-                    <h3 className="section-title-accent">Skills</h3>
-                    <div className="skills-grid">
-                      {resumeData.skills.map((skill) => (
-                        <span key={skill} className="skill-tag">{skill}</span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Languages */}
-                {resumeData.languages.length > 0 && (
-                  <div className="section">
-                    <h3 className="section-title-accent">Languages</h3>
-                    <div className="space-y-2">
-                      {resumeData.languages.map((language, index) => (
-                        <div key={language} className="text-sm">
-                          <div className="font-medium">{language}</div>
-                          <div className="text-gray-600 text-xs">
-                            {index === 0 ? 'Native Speaker' : 'Intermediate'}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Right Content */}
-            <div className="main-wrapper">
-              {/* Colored Header */}
-              <div className="colored-header">
-                <h1 className="text-4xl font-bold mb-2 text-white">
-                  {resumeData.fullName || 'John Doe'}
-                </h1>
-                <p className="text-xl mb-4 text-white/90">
-                  {resumeData.headline || 'Creative and Innovative Web Developer'}
-                </p>
-                <div className="flex flex-wrap gap-4 text-sm text-white/80">
-                  {resumeData.location && (
-                    <div className="contact-item">
-                      <MapPin className="contact-icon" />
-                      <span>{resumeData.location}</span>
-                    </div>
-                  )}
-                  {resumeData.phone && (
-                    <div className="contact-item">
-                      <Phone className="contact-icon" />
-                      <span>{resumeData.phone}</span>
-                    </div>
-                  )}
-                  {resumeData.email && (
-                    <div className="contact-item">
-                      <Mail className="contact-icon" />
-                      <span>{resumeData.email}</span>
-                    </div>
-                  )}
-                  {resumeData.website && (
-                    <div className="contact-item">
-                      <Globe className="contact-icon" />
-                      <span>{resumeData.website}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="main-content space-y-6">
-                {/* Summary */}
-                {resumeData.summary && (
-                  <div className="section">
-                    <h2 className="section-title-accent">Summary</h2>
-                    <p className="text-sm leading-relaxed">{resumeData.summary}</p>
-                  </div>
-                )}
-
-                {/* Experience */}
-                {resumeData.experience.length > 0 && (
-                  <div className="section">
-                    <h2 className="section-title-accent">Experience</h2>
-                    {resumeData.experience.map((exp) => (
-                      <div key={exp.id} className="experience-item">
-                        <div className="experience-header">
-                          <div>
-                            <div className="experience-company text-lg">
-                              {exp.company || 'Creative Solutions Inc.'}
-                            </div>
-                            <div className="font-medium text-sm" style={{ color: settings.accentColor }}>
-                              {exp.role || 'Senior Web Developer'}
-                            </div>
-                          </div>
-                          <div className="experience-date">
-                            <div className="font-medium">
-                              {exp.startDate ? new Date(exp.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'January 2019'} to {exp.current ? 'Present' : exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Present'}
-                            </div>
-                            <div className="text-gray-600">{resumeData.location || 'San Francisco, CA'}</div>
-                          </div>
-                        </div>
-                        {exp.bullets.filter(b => b.trim()).length > 0 && (
-                          <ul className="bullet-list mt-2">
-                            {exp.bullets.filter(b => b.trim()).map((bullet, index) => (
-                              <li key={index} className="bullet-item">{bullet}</li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Education */}
-                {resumeData.education.length > 0 && (
-                  <div className="section">
-                    <h2 className="section-title-accent">Education</h2>
-                    {resumeData.education.map((edu) => (
-                      <div key={edu.id} className="mb-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-bold">{edu.institution || 'University of California'}</h3>
-                            <p>{edu.degree || "Bachelor's in Computer Science"}</p>
-                          </div>
-                          <div className="text-right text-sm">
-                            <div className="font-medium">
-                              {edu.graduationYear || '2016'}
-                            </div>
-                            <div className="text-gray-600">Berkeley, CA</div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+        {renderTemplate()}
       </div>
     );
   };
-
   return (
     <div className="min-h-screen bg-background text-foreground pt-16">
       {/* Header */}
@@ -1532,9 +1385,9 @@ const ResumeBuilder: React.FC = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto p-4">
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid lg:grid-cols-5 gap-6">
           {/* Left Column - Form */}
-          <div className="space-y-6">
+          <div className="lg:col-span-2 space-y-6">
             {/* Template Selector */}
             <Card>
               <CardHeader>
@@ -1563,16 +1416,7 @@ const ResumeBuilder: React.FC = () => {
                 </div>
                 
                 {/* Template Customization */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Accent Color</label>
-                    <input
-                      type="color"
-                      value={settings.accentColor}
-                      onChange={(e) => setSettings(prev => ({ ...prev, accentColor: e.target.value }))}
-                      className="w-full h-10 rounded border border-input bg-background"
-                    />
-                  </div>
+                <div className="grid grid-col gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">Font Family</label>
                     <Select
@@ -1599,7 +1443,7 @@ const ResumeBuilder: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Picture URL</label>
+                  <label className=" block text-sm font-medium mb-2">Picture URL</label>
                   <Input
                     placeholder="https://example.com/photo.jpg"
                     value={resumeData.picture}
@@ -2059,7 +1903,7 @@ const ResumeBuilder: React.FC = () => {
             </Card>
 
             {/* Quick Add Sections */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-rows-2 gap-4">
               {(['awards', 'certifications', 'interests', 'publications', 'volunteering', 'references'] as ListFields[]).map((section) => (
                 <Card key={section}>
                   <CardHeader>
@@ -2119,13 +1963,14 @@ const ResumeBuilder: React.FC = () => {
           </div>
 
           {/* Right Column - Preview */}
-          <div className="lg:sticky lg:top-4 lg:max-h-screen lg:overflow-y-auto">
+          <div className="lg:col-span-3 lg:sticky lg:top-4 lg:max-h-screen lg:overflow-y-auto">
             <Card>
               <CardHeader>
                 <h2 className="text-lg font-semibold">Live Preview</h2>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="border border-border rounded-lg overflow-hidden bg-white" style={{ minHeight: '800px' }}>
+                  <style>{getPreviewCSS(settings)}</style>
                   {renderResumePreview()}
                 </div>
               </CardContent>

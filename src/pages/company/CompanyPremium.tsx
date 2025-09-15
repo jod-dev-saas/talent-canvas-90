@@ -56,7 +56,7 @@ const PRICING_TIERS: PricingTier[] = [
   {
     id: "starter",
     name: "Starter",
-    price: "$49",
+    price: "₹0",
     period: "/month",
     description: "Small teams — search candidates and shortlist fast.",
     icon: Star,
@@ -72,7 +72,7 @@ const PRICING_TIERS: PricingTier[] = [
   {
     id: "growth",
     name: "Growth",
-    price: "$299",
+    price: "₹4999",
     period: "/month",
     description: "For growing engineering teams — priority visibility & workflows.",
     icon: Zap,

@@ -3,6 +3,7 @@ export interface CandidateProfile {
   name: string;
   email: string;
   role: string;
+  customRole?: string;
   
   // Skills
   skills: string[];
@@ -15,6 +16,7 @@ export interface CandidateProfile {
   
   // Resume
   resumeFile?: File | null;
+  resumeFileUrl?: string;
 
   // Job preferences
   jobSeekingType: string;
@@ -29,6 +31,7 @@ export interface CandidateProfile {
   portfolio?: string;
   openToRelocate?: boolean | 'maybe';
   education?: string;
+  customEducation?: string;
   graduationYear?: string;
   additionalNotes?: string;
 }

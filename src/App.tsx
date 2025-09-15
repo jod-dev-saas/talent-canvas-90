@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom"; // <-- no BrowserRouter here
 import { ThemeProvider } from "next-themes";
 import { Suspense } from "react";
 import { CustomCursor } from "@/components/CustomCursor";
@@ -24,14 +24,14 @@ import CandidatePremium from "./pages/candidate/CandiatePremium";
 import CompanyPremium from "./pages/company/CompanyPremium";
 import How from "./pages/How";
 import Contact from "./pages/Contact";
+import SignIn from "./pages/candidate/CandidateSignIn";
+import AuthCallback from "./pages/auth/AuthCallback";
+import SignUp from "./pages/candidate/CandidateSignUp";
+import CompanySignUp from "./pages/company/CompanySignUp";
+import CompanySignIn from "./pages/company/CompanySignin";
 
 const queryClient = new QueryClient();
 
-/**
- * Main App component with global providers and routing
- * Includes custom cursor, chatbot, and scroll-to-top functionality
- * Lazy loads non-critical components for better performance
- */
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider
@@ -44,7 +44,6 @@ const App = () => (
         <CustomCursor>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
             <ScrollToTopOnRouteChange />
             <Routes>
               <Route path="/" element={<Index />} />
@@ -53,8 +52,11 @@ const App = () => (
               <Route path="/how" element={<How />} />
               <Route path="/contact" element={<Contact />} />
 
-              {/* Candidate */}
+              <Route path="/candidate/auth/signin" element={<SignIn />} />
+              <Route path="/candidate/auth/signup" element={<SignUp />} />
+              <Route path="/candidate/auth/callback" element={<AuthCallback/>} />
 
+              {/* Candidate */}
               <Route path="/candidate" element={<Candidate />} />
               <Route path="/candidate/contact" element={<CandidateContact />} />
               <Route path="/candidate/how" element={<CandidateHow />} />
@@ -64,25 +66,23 @@ const App = () => (
               <Route path="/candidate/askjod" element={<AskJod />} />
 
               {/* Company */}
-
               <Route path="/company" element={<Company />} />
               <Route path="/company/premium" element={<CompanyPremium />} />
               <Route path="/company/contact" element={<CompanyContact />} />
               <Route path="/company/how" element={<CompanyHow />} />
-              {/* <Route path="/company/top-rated" element={<TopRatedCandidates />} />
-              <Route path="/company/freshers" element={<Freshers />} />
-              <Route path="/company/experienced" element={<Experienced />} />  */}
               <Route path="/company/askjod" element={<AskJod />} />
 
-              {/* 404 */}
+              <Route path="/company/auth/signup" element={<CompanySignUp />} />
+              <Route path="/company/auth/signin" element={<CompanySignIn />} />
 
+              {/* 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-            {/* Global ChatBot - available on all pages */}
-            <Suspense fallback={null}>
-              <ChatBot />
-            </Suspense>
-          </BrowserRouter>
+
+          {/* Global ChatBot - available on all pages */}
+          <Suspense fallback={null}>
+            <ChatBot />
+          </Suspense>
         </CustomCursor>
       </TooltipProvider>
     </ThemeProvider>
