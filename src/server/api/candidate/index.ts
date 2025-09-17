@@ -1,14 +1,14 @@
 import { Router } from 'express';
-import { requireAuth, optionalAuth, AuthRequest } from '../../middleware/auth';
-import { supabaseService, getSupabaseClient } from '../../lib/supabaseClient';
-import { uploadAvatar, uploadImage, deleteImage } from '../../lib/cloudinary';
+ import { requireAuth, optionalAuth, AuthRequest } from '../../middleware/auth.ts';
+import { supabaseService, getSupabaseClient } from '../../lib/supabaseClient.ts';
+import { uploadAvatar, uploadImage, deleteImage } from '../../lib/cloudinary.ts';
 import multer from 'multer';
 import { 
   Candidate, 
   CandidateWithDetails, 
   CandidateSearchParams, 
   CandidateSearchResult 
-} from '../../models/candidate';
+} from '../../models/candidate.ts';
 
 const router = Router();
 const upload = multer({ 

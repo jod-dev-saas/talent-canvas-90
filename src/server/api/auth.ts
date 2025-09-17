@@ -1,6 +1,8 @@
+// CHANGED_BY: Claude – backend finish (2025-09-15) - Complete OAuth implementation
+
 import { Router } from 'express';
-import { supabaseService, createSessionCookie } from '../lib/supabaseClient';
-import { AuthRequest, requireAuth } from '../middleware/auth';
+import { supabaseService, createSessionCookie } from '../lib/supabaseClient.ts';
+import { AuthRequest, requireAuth } from '../middleware/auth.ts';
 
 const router = Router();
 
@@ -145,6 +147,140 @@ router.post('/signout', requireAuth, async (req: AuthRequest, res) => {
   } catch (error: any) {
     console.error('Sign out error:', error);
     res.status(500).json({ error: 'Failed to sign out' });
+  }
+});
+
+/**
+ * GET /api/auth/callback
+ * Handle OAuth callbacks for social providers
+ */
+router.get('/callback', async (req, res) => {
+  try {
+    const { code, state, error: authError } = req.query;
+
+    // Handle OAuth errors
+    if (authError) {
+      console.error('OAuth error:', authError);
+      return res.redirect(`${process.env.FRONTEND_URL}/candidate/auth/signin?error=${encodeURIComponent(authError as string)}`);
+    }
+
+    if (!code) {
+      return res.redirect(`${process.env.FRONTEND_URL}/candidate/auth/signin?error=no_code`);
+    }
+
+    // Exchange code for session
+    const { data, error } = await supabaseService.auth.exchangeCodeForSession(code as string);
+
+    if (error) {
+      console.error('Code exchange error:', error);
+      return res.redirect(`${process.env.FRONTEND_URL}/candidate/auth/signin?error=${encodeURIComponent(error.message)}`);
+    }
+
+    if (data.session) {
+      // Set session cookie
+      const sessionCookie = createSessionCookie(
+        data.session.access_token,
+        data.session.refresh_token
+      );
+
+      res.cookie('sb-session', sessionCookie, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax', // Changed to 'lax' for OAuth redirects
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        path: '/'
+      });
+
+      // Check if user is new
+      const isNewUser = data.user?.created_at === data.user?.updated_at;
+      const redirectPath = isNewUser ? '/candidate' : (state as string || '/candidate');
+      
+      res.redirect(`${process.env.FRONTEND_URL}${redirectPath}`);
+    } else {
+      res.redirect(`${process.env.FRONTEND_URL}/candidate/auth/signin?error=no_session`);
+    }
+  } catch (error: any) {
+    console.error('OAuth callback error:', error);
+    res.redirect(`${process.env.FRONTEND_URL}/candidate/auth/signin?error=callback_failed`);
+  }
+});
+
+/**
+ * POST /api/auth/oauth/google
+ * Initiate Google OAuth flow
+ */
+router.post('/oauth/google', async (req, res) => {
+  try {
+    const { data, error } = await supabaseService.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${process.env.BACKEND_URL}/api/auth/callback`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        }
+      }
+    });
+
+    if (error) throw error;
+
+    res.json({ 
+      url: data.url,
+      provider: 'google' 
+    });
+  } catch (error: any) {
+    console.error('Google OAuth error:', error);
+    res.status(400).json({ error: error.message || 'Failed to initiate Google OAuth' });
+  }
+});
+
+/**
+ * POST /api/auth/oauth/github
+ * Initiate GitHub OAuth flow
+ */
+router.post('/oauth/github', async (req, res) => {
+  try {
+    const { data, error } = await supabaseService.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: `${process.env.BACKEND_URL}/api/auth/callback`
+      }
+    });
+
+    if (error) throw error;
+
+    res.json({ 
+      url: data.url,
+      provider: 'github' 
+    });
+  } catch (error: any) {
+    console.error('GitHub OAuth error:', error);
+    res.status(400).json({ error: error.message || 'Failed to initiate GitHub OAuth' });
+  }
+});
+
+/**
+ * POST /api/auth/oauth/apple
+ * Initiate Apple OAuth flow
+ */
+router.post('/oauth/apple', async (req, res) => {
+  try {
+    const { data, error } = await supabaseService.auth.signInWithOAuth({
+      provider: 'apple',
+      options: {
+        redirectTo: `${process.env.BACKEND_URL}/api/auth/callback`
+      }
+    });
+
+    if (error) throw error;
+
+    res.json({ 
+      url: data.url,
+      provider: 'apple' 
+    });
+  } catch (error: any) {
+    console.error('Apple OAuth error:', error);
+    res.status(400).json({ error: error.message || 'Failed to initiate Apple OAuth' });
   }
 });
 
